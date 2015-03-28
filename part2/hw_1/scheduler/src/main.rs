@@ -6,8 +6,10 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 mod job;
+mod schedule;
 
 use job::Job;
+use schedule::Schedule;
 
 // Create Schedule class, moved to separate file, no unit tests
 // main.rs creates a schedule and sorts it both ways.

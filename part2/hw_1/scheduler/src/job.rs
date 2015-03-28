@@ -4,11 +4,11 @@ pub struct Job {
 }
 
 impl Job {
-	fn difference(&self) -> i32 {
+	pub fn difference(&self) -> i32 {
 		self.weight - self.duration
 	}
 
-	fn ratio(&self) -> f32 {
+	pub fn ratio(&self) -> f32 {
 		(self.weight as f32) / (self.duration as f32)
 	}
 }
