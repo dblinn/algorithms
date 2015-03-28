@@ -7,16 +7,7 @@ pub struct Schedule<'a> {
 
 impl<'a> Schedule<'a> {
 	fn sort_by_difference(&mut self) {
-		self.jobs.sort_by(|a, b| {
-			let order = b.difference().cmp(& a.difference());
-
-			if (order == Ordering::Equal) {
-				b.weight.cmp(& a.weight)
-			}
-			else {
-				order
-			}
-		});
+		self.jobs.sort_by(compare_jobs_by_difference);
 	}
 
 	fn sort_by_ratio(&mut self) {
@@ -24,10 +15,17 @@ impl<'a> Schedule<'a> {
 	}
 
 	fn total_weighted_completion_time(&self) -> i32 {
-		let (weighted_time, accum_time) = self.jobs.iter().fold((0,0), sum_completion_time);
+		let (weighted_time, _) = self.jobs.iter().fold((0,0), sum_completion_time);
 		weighted_time
 	}
 
+}
+
+fn compare_jobs_by_difference(job_a: &Job, job_b: &Job) -> Ordering {
+	let order = job_b.difference().cmp(& job_a.difference());
+
+	if (order == Ordering::Equal) { job_b.weight.cmp(& job_a.weight) }
+	else { order }
 }
 
 fn sum_completion_time(accumulator: (i32, i32), job: &Job) -> (i32, i32) {
@@ -46,7 +44,8 @@ fn test_sort_by_difference() {
 	let mut sched = Schedule { jobs: &mut v };
 
 	sched.sort_by_difference();
-	assert_eq!(sched.jobs.iter().map(|job| {job.weight}).collect::<Vec<i32>>(), vec![10, 3, 2]);
+	assert_eq!(sched.jobs.iter().map(|job| {job.weight}).collect::<Vec<i32>>(),
+			   vec![10, 3, 2]);
 }
 
 #[test]
@@ -60,7 +59,8 @@ fn test_sort_by_ratio() {
 	let mut sched = Schedule { jobs: &mut v };
 
 	sched.sort_by_ratio();
-	assert_eq!(sched.jobs.iter().map(|job| {job.weight}).collect::<Vec<i32>>(), vec![10, 1, 3, 2]);
+	assert_eq!(sched.jobs.iter().map(|job| {job.weight}).collect::<Vec<i32>>(),
+			   vec![10, 1, 3, 2]);
 }
 
 #[test]
