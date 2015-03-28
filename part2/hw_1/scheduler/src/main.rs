@@ -5,32 +5,18 @@ use std::io::BufReader;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+mod job;
 
-// TODO: Move Job class to separate file, include unit tests in it
+use job::Job;
+
 // Create Schedule class, moved to separate file, no unit tests
 // main.rs creates a schedule and sorts it both ways.
 
-struct Job {
-	weight: i32,
-	duration: i32,
-}
-
-impl Job {
-	fn difference(&self) -> i32 {
-		self.weight - self.duration
-	}
-
-	fn ratio(&self) -> f32 {
-		(self.weight as f32) / (self.duration as f32)
-	}
-}
 
 fn main() {
-	// Create a path to the desired file
 	let path = Path::new("test_cases/test_1.txt");
 	let display = path.display();
 
-	// Open the path in read-only mode, returns `IoResult<File>`
 	let mut file = match File::open(&path) {
 			// The `desc` field of `IoError` is a string that describes the error
 			Err(why) => panic!("couldn't open {}: {}", display,
@@ -39,42 +25,36 @@ fn main() {
 		};
 
 	read_file(&mut file, &display);
-	// `file` goes out of scope, and the opened file gets closed
 }
 
 fn read_file(file: &mut File, display: &std::path::Display) {
-	// Read the file contents into a string, returns `IoResult<String>`
 	let mut reader = BufReader::new(file);
-	let schedule_size = read_first_line(&mut reader);
+	let schedule_size = read_schedule_size(&mut reader);
 	println!("Found a schedule size of: {}", schedule_size);
+
+	let mut jobs: Vec<Job> = Vec::with_capacity(schedule_size as usize);
+	println!("Size of jobs: {}", jobs.len());
 
 	for line in reader.lines() {
 		match line {
 			Err(why) => panic!("couldn't read {}: {}", display, Error::description(&why)),
 			Ok(line_contents) => {
-				handle_line(line_contents.trim().as_slice());
+				jobs.push(create_job_from_line(line_contents.trim().as_slice()));
 			}
 		}
 	}
 }
 
-fn read_first_line(reader: &mut BufReader<&mut File>) -> i32 {
+fn read_schedule_size(reader: &mut BufReader<&mut File>) -> i32 {
 	let mut first_line = String::new();
-	reader.read_line(&mut first_line);
-	handle_first_line(first_line.trim().as_slice())
+	reader.read_line(&mut first_line).ok().expect("Could not read line");
+	first_line.trim().parse::<i32>().unwrap()
 }
 
-fn handle_first_line(line: &str) -> i32 {
-	match line.parse::<i32>() {
-		Ok(num) => num,
-		Err(why) => {
-			println!("Error: {}", Error::description(&why));
-			-1
-		}
+fn create_job_from_line(line: &str) -> Job {
+	let fields = line.split(" ").collect::<Vec<&str>>();
+	Job {
+		weight: fields[0].parse::<i32>().unwrap(),
+		duration: fields[1].parse::<i32>().unwrap()
 	}
-}
-
-fn handle_line(line: &str) {
-	println!("{}", line);
-//	let fields =  line.split_str(" ").collect::<Vec<&str>>();
 }
