@@ -24,17 +24,13 @@ impl<'a> Schedule<'a> {
 	}
 
 	fn total_weighted_completion_time(&self) -> i32 {
-		let (weighted_time, accum_time) = self.jobs.iter().fold((0,0), |accum, job| {
-			let (weighted_time, current_time) = accum;
-			let next_time = current_time + job.duration;
-			(weighted_time + job.weight * next_time, next_time)
-		});
+		let (weighted_time, accum_time) = self.jobs.iter().fold((0,0), sum_completion_time);
 		weighted_time
 	}
 
 }
 
-fn sum_completion_time(accumulator: (i32, i32), job: Job) -> (i32, i32) {
+fn sum_completion_time(accumulator: (i32, i32), job: &Job) -> (i32, i32) {
 	let (weighted_sum, running_completion_time) = accumulator;
 	let next_time = running_completion_time + job.duration;
 
