@@ -6,15 +6,15 @@ pub struct Schedule<'a> {
 }
 
 impl<'a> Schedule<'a> {
-	fn sort_by_difference(&mut self) {
+	pub fn sort_by_difference(&mut self) {
 		self.jobs.sort_by(compare_jobs_by_difference);
 	}
 
-	fn sort_by_ratio(&mut self) {
+	pub fn sort_by_ratio(&mut self) {
 		self.jobs.sort_by(|a, b| { b.ratio().partial_cmp(& a.ratio()).unwrap() });
 	}
 
-	fn total_weighted_completion_time(&self) -> i32 {
+	pub fn total_weighted_completion_time(&self) -> i64 {
 		let (weighted_time, _) = self.jobs.iter().fold((0,0), sum_completion_time);
 		weighted_time
 	}
@@ -28,11 +28,11 @@ fn compare_jobs_by_difference(job_a: &Job, job_b: &Job) -> Ordering {
 	else { order }
 }
 
-fn sum_completion_time(accumulator: (i32, i32), job: &Job) -> (i32, i32) {
+fn sum_completion_time(accumulator: (i64, i64), job: &Job) -> (i64, i64) {
 	let (weighted_sum, running_completion_time) = accumulator;
-	let next_time = running_completion_time + job.duration;
+	let next_time = running_completion_time + job.duration as i64;
 
-	(weighted_sum + next_time * job.weight, next_time)
+	(weighted_sum + next_time * (job.weight as i64), next_time)
 }
 
 #[test]
@@ -73,5 +73,5 @@ fn total_weighted_completion_time() {
 	let sched = Schedule { jobs: &mut v };
 
 	let total = sched.total_weighted_completion_time();
-	assert_eq!(total, 10 * 5 + 2 * 8 + 3 * 12);
+	assert_eq!(total, (10 * 5 + 2 * 8 + 3 * 12) as i64);
 }
