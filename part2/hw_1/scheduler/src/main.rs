@@ -11,9 +11,6 @@ mod schedule;
 use job::Job;
 use schedule::Schedule;
 
-// Create Schedule class, moved to separate file, no unit tests
-// main.rs creates a schedule and sorts it both ways.
-
 struct Example<'a> {
 	file_name: &'a str,
 	expected_ratio: i64,
@@ -25,7 +22,7 @@ fn main() {
 		Example {file_name: "test_cases/test_1.txt", expected_ratio: 31814, expected_difference: 31814},
 		Example {file_name: "test_cases/test_2.txt", expected_ratio: 60213, expected_difference: 61545},
 		Example {file_name: "test_cases/test_3.txt", expected_ratio: 674634, expected_difference: 688647},
-//		Example {file_name: "test_cases/jobs.txt", expected_ratio: -1, expected_difference: -1},
+		Example {file_name: "test_cases/jobs.txt", expected_ratio: -1, expected_difference: -1},
 	];
 
 	for example in examples.iter() {
@@ -43,19 +40,40 @@ fn run_example(example: &Example) {
 		Ok(file) => file,
 	};
 
-	let schedule =  Box::new(read_file(&mut file, &display));
-
+	let mut schedule = Box::new(read_file(&mut file, &display));
+	examine_schedule_correctness(example, &mut *schedule);
 }
 
-//fn examine_schedule_correctness<'a>(example: &Example, schedule: &'a mut Schedule<'a>) {
-//	schedule.sort_by_difference();
-//	println!("Expected difference of {}, Found {}", example.expected_difference, schedule.total_weighted_completion_time());
-//	schedule.sort_by_difference();
-//	println!("Expected ratio of {}, Found {}", example.expected_ratio, schedule.total_weighted_completion_time());
-//	println!("");
-//}
+fn examine_schedule_correctness(example: &Example, schedule: &mut Schedule) {
+	if example.expected_difference >= 0 {
+		assert_schedule_correctness(example, schedule);
+	}
+	else {
+		print_schedule_values(schedule);
+	}
+}
 
-fn read_file<'a>(file: &mut File, display: &std::path::Display) {
+fn print_schedule_values(schedule: &mut Schedule) {
+	schedule.sort_by_difference();
+	println!("Found difference of {}", schedule.total_weighted_completion_time());
+
+	schedule.sort_by_ratio();
+	println!("Found ratio of {}", schedule.total_weighted_completion_time());
+	println!("");
+}
+
+fn assert_schedule_correctness(example: &Example, schedule: &mut Schedule) {
+	schedule.sort_by_difference();
+	println!("Expected difference of {}, Found {}", example.expected_difference, schedule.total_weighted_completion_time());
+	if schedule.total_weighted_completion_time() != example.expected_difference { panic!("Difference failed") }
+
+	schedule.sort_by_ratio();
+	println!("Expected ratio of {}, Found {}", example.expected_ratio, schedule.total_weighted_completion_time());
+	if schedule.total_weighted_completion_time() != example.expected_ratio { panic!("Ratio failed") }
+	println!("");
+}
+
+fn read_file(file: &mut File, display: &std::path::Display) -> Schedule {
 	let mut reader = BufReader::new(file);
 	let schedule_size = read_schedule_size(&mut reader);
 	println!("In file {}, read a schedule size of: {}", display, schedule_size);
@@ -71,7 +89,7 @@ fn read_file<'a>(file: &mut File, display: &std::path::Display) {
 		}
 	}
 
-//	Schedule { jobs: &mut jobs }
+	Schedule { jobs: Box::new(jobs) }
 }
 
 fn read_schedule_size(reader: &mut BufReader<&mut File>) -> i32 {

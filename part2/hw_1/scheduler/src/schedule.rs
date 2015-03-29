@@ -12,6 +12,7 @@ impl Schedule {
 		let ref mut jobs_ref = *self.jobs;
 		jobs_ref.sort_by(compare_jobs_by_difference);
 
+		// http://stackoverflow.com/questions/28843931/get-an-enum-field-from-a-struct-cannot-move-out-of-borrowed-content
 		// Note that it's necessary to take a reference because otherwise it would attempt to actually
 		// borrow self.jobs. This would be okay if we owned self, but we don't! We've only borrowed self.
 		// Fails to compile:
@@ -39,7 +40,7 @@ impl Schedule {
 fn compare_jobs_by_difference(job_a: &Job, job_b: &Job) -> Ordering {
 	let order = job_b.difference().cmp(& job_a.difference());
 
-	if (order == Ordering::Equal) { job_b.weight.cmp(& job_a.weight) }
+	if order == Ordering::Equal { job_b.weight.cmp(& job_a.weight) }
 	else { order }
 }
 
