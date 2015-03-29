@@ -1,24 +1,39 @@
 use job::Job;
 use std::cmp::Ordering;
 
-pub struct Schedule<'a> {
-	pub jobs: &'a mut Vec<Job>,
+pub struct Schedule {
+	pub jobs: Box<Vec<Job>>,
 }
 
-impl<'a> Schedule<'a> {
+impl Schedule {
 	pub fn sort_by_difference(&mut self) {
-		self.jobs.sort_by(compare_jobs_by_difference);
+		// One way to access the inner contents of the jobs box is to take a reference to it.
+		// This works:
+		let ref mut jobs_ref = *self.jobs;
+		jobs_ref.sort_by(compare_jobs_by_difference);
+
+		// Note that it's necessary to take a reference because otherwise it would attempt to actually
+		// borrow self.jobs. This would be okay if we owned self, but we don't! We've only borrowed self.
+		// Fails to compile:
+		//
+		// let mut borrowed_jobs = *self.jobs;
+		// borrowed_jobs.sort_by(compare_jobs_by_difference);
+		//
+		// error: cannot move out of borrowed content
+		// 		let mut jobs_ref = *self.jobs;
+		//                          ^~~~
+
 	}
 
 	pub fn sort_by_ratio(&mut self) {
-		self.jobs.sort_by(|a, b| { b.ratio().partial_cmp(& a.ratio()).unwrap() });
+		// Here's another way to avoid the borrow problem
+		(*self.jobs).sort_by(|a, b| { b.ratio().partial_cmp(& a.ratio()).unwrap() });
 	}
 
 	pub fn total_weighted_completion_time(&self) -> i64 {
 		let (weighted_time, _) = self.jobs.iter().fold((0,0), sum_completion_time);
 		weighted_time
 	}
-
 }
 
 fn compare_jobs_by_difference(job_a: &Job, job_b: &Job) -> Ordering {
@@ -41,7 +56,7 @@ fn test_sort_by_difference() {
 		Job {weight: 10, duration: 5},
 		Job {weight: 2, duration: 3},
 		Job {weight: 3, duration: 4} ];
-	let mut sched = Schedule { jobs: &mut v };
+	let mut sched = Schedule { jobs: Box::new(v) };
 
 	sched.sort_by_difference();
 	assert_eq!(sched.jobs.iter().map(|job| {job.weight}).collect::<Vec<i32>>(),
@@ -56,7 +71,7 @@ fn test_sort_by_ratio() {
 		Job {weight: 3, duration: 4},
 		Job {weight: 1, duration: 1}
 	];
-	let mut sched = Schedule { jobs: &mut v };
+	let mut sched = Schedule { jobs: Box::new(v) };
 
 	sched.sort_by_ratio();
 	assert_eq!(sched.jobs.iter().map(|job| {job.weight}).collect::<Vec<i32>>(),
@@ -70,7 +85,7 @@ fn total_weighted_completion_time() {
 		Job {weight: 2, duration: 3},
 		Job {weight: 3, duration: 4}
 	];
-	let sched = Schedule { jobs: &mut v };
+	let sched = Schedule { jobs: Box::new(v) };
 
 	let total = sched.total_weighted_completion_time();
 	assert_eq!(total, (10 * 5 + 2 * 8 + 3 * 12) as i64);
