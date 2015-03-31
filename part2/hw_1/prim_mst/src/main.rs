@@ -17,8 +17,8 @@ struct Example<'a> {
 
 fn main() {
 	let examples = [
-		Example {file_name: "test_cases/test_1.txt", mst_cost: 31814, mst_ordered_weights: &[1, 2, 3]},
-		Example {file_name: "test_cases/test_2.txt", mst_cost: 60213, mst_ordered_weights: &[1, 1, 2]},
+//		Example {file_name: "test_cases/test_1.txt", mst_cost: 31814, mst_ordered_weights: &[1, 2, 3]},
+//		Example {file_name: "test_cases/test_2.txt", mst_cost: 60213, mst_ordered_weights: &[1, 1, 2]},
 		Example {file_name: "test_cases/test_3.txt", mst_cost: 674634, mst_ordered_weights: &[-10, -1, -8, -3, 6]},
 //		Example {file_name: "test_cases/edges.txt", mst_cost: -1, mst_ordered_weights: &[]},
 	];
@@ -48,18 +48,22 @@ fn build_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display
 	let (node_count, edge_count) = read_graph_size(reader);
 	println!("In file {}, read a graph size of: {} nodes, {} edges", file_name, node_count, edge_count);
 
-	let mut jobs: Vec<Edge> = Vec::with_capacity(edge_count as usize);
+	let mut edges: Vec<Edge> = Vec::with_capacity(edge_count as usize);
 
 	for line in reader.lines() {
 		match line {
 			Err(why) => panic!("couldn't read {}: {}", file_name, Error::description(&why)),
 			Ok(line_contents) => {
-//				jobs.push(create_job_from_line(line_contents.trim().as_slice()));
+				edges.push(read_edge_from_line(line_contents.trim().as_slice()));
 			}
 		}
 	}
 
-//	Schedule { jobs: Box::new(jobs) }
+	let mut nodes = Graph::create_nodes(node_count, &edges);
+//	nodes = Graph::create_nodes(node_count, edges);
+
+	println!("Read {} edges", edges.len());
+//	Schedule { edges: Box::new(edges) }
 }
 
 fn read_graph_size(reader: &mut BufReader<&mut File>) -> (i32, i32) {
@@ -76,8 +80,8 @@ fn read_graph_size(reader: &mut BufReader<&mut File>) -> (i32, i32) {
 fn read_edge_from_line(line: &str) -> Edge {
 	let fields = line.split(" ").collect::<Vec<&str>>();
 	Edge {
-		weight: fields[0].parse::<i32>().unwrap(),
-		a: fields[1].parse::<i32>().unwrap(),
-		b: fields[2].parse::<i32>().unwrap(),
+		weight: fields[2].parse::<i32>().unwrap(),
+		a: fields[0].parse::<i32>().unwrap() - 1,
+		b: fields[1].parse::<i32>().unwrap() - 1,
 	}
 }
