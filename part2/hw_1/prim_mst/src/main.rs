@@ -7,7 +7,7 @@ use std::io::BufReader;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use graph::{Edge, Node, Graph};
+use graph::{UndirectedEdge, Node, Graph};
 
 struct Example<'a> {
 	file_name: &'a str,
@@ -17,8 +17,8 @@ struct Example<'a> {
 
 fn main() {
 	let examples = [
-//		Example {file_name: "test_cases/test_1.txt", mst_cost: 31814, mst_ordered_weights: &[1, 2, 3]},
-//		Example {file_name: "test_cases/test_2.txt", mst_cost: 60213, mst_ordered_weights: &[1, 1, 2]},
+		Example {file_name: "test_cases/test_1.txt", mst_cost: 31814, mst_ordered_weights: &[1, 2, 3]},
+		Example {file_name: "test_cases/test_2.txt", mst_cost: 60213, mst_ordered_weights: &[1, 1, 2]},
 		Example {file_name: "test_cases/test_3.txt", mst_cost: 674634, mst_ordered_weights: &[-10, -1, -8, -3, 6]},
 //		Example {file_name: "test_cases/edges.txt", mst_cost: -1, mst_ordered_weights: &[]},
 	];
@@ -48,7 +48,7 @@ fn build_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display
 	let (node_count, edge_count) = read_graph_size(reader);
 	println!("In file {}, read a graph size of: {} nodes, {} edges", file_name, node_count, edge_count);
 
-	let mut edges: Vec<Edge> = Vec::with_capacity(edge_count as usize);
+	let mut edges: Vec<UndirectedEdge> = Vec::with_capacity(edge_count as usize);
 
 	for line in reader.lines() {
 		match line {
@@ -77,9 +77,9 @@ fn read_graph_size(reader: &mut BufReader<&mut File>) -> (i32, i32) {
 	)
 }
 
-fn read_edge_from_line(line: &str) -> Edge {
+fn read_edge_from_line(line: &str) -> UndirectedEdge {
 	let fields = line.split(" ").collect::<Vec<&str>>();
-	Edge {
+	UndirectedEdge {
 		weight: fields[2].parse::<i32>().unwrap(),
 		a: fields[0].parse::<i32>().unwrap() - 1,
 		b: fields[1].parse::<i32>().unwrap() - 1,
