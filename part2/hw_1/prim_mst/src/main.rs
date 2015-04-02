@@ -79,9 +79,9 @@ fn read_graph_size(reader: &mut BufReader<&mut File>) -> (i32, i32) {
 
 fn read_edge_from_line(line: &str) -> UndirectedEdge {
 	let fields = line.split(" ").collect::<Vec<&str>>();
-	UndirectedEdge {
-		weight: fields[2].parse::<i32>().unwrap(),
-		a: fields[0].parse::<i32>().unwrap() - 1,
-		b: fields[1].parse::<i32>().unwrap() - 1,
-	}
+	UndirectedEdge::new(
+		fields[2].parse::<i32>().unwrap(),
+		fields[0].parse::<i32>().unwrap() - 1,
+		fields[1].parse::<i32>().unwrap() - 1,
+	)
 }

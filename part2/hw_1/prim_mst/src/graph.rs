@@ -3,11 +3,20 @@ pub struct UndirectedEdge {
 	pub weight: i32,
 	pub a: i32,
 	pub b: i32,
+	pub crosses_cut: bool,
 }
 
 impl UndirectedEdge {
+	pub fn new(weight: i32, a: i32, b: i32) -> UndirectedEdge {
+		UndirectedEdge { weight: weight, a: a, b: b, crosses_cut: false}
+	}
+
 	pub fn connects_to(&self, node: &Node) -> bool {
 		self.a == node.index || self.b == node.index
+	}
+
+	pub fn mark_crossing(&mut self) {
+		self.crosses_cut = true;
 	}
 }
 
@@ -66,7 +75,7 @@ impl Graph {
 
 #[test]
 fn test_connects_to() {
-	let edge = UndirectedEdge { weight: 0, a: 0, b: 1};
+	let edge = UndirectedEdge::new(0, 0, 1);
 	let a = Node { index: 0, edges: Box::new(vec![]) };
 	let b = Node { index: 1, edges: Box::new(vec![]) };
 
@@ -76,7 +85,7 @@ fn test_connects_to() {
 
 #[test]
 fn test_does_not_connect_to() {
-	let edge = UndirectedEdge { weight: 0, a: 0, b: 1};
+	let edge = UndirectedEdge::new(0, 0, 1);
 	let a = Node { index: 2, edges: Box::new(vec![]) };
 	let b = Node { index: -1, edges: Box::new(vec![]) };
 
@@ -87,9 +96,9 @@ fn test_does_not_connect_to() {
 #[test]
 fn test_create_nodes() {
 	let edges = vec![
-		UndirectedEdge {weight: 1, a: 0, b: 1},
-		UndirectedEdge {weight: -1, a: 0, b: 2},
-		UndirectedEdge {weight: 2, a: 2, b: 1},
+		UndirectedEdge::new(1, 0, 1),
+		UndirectedEdge::new(-1, 0, 2),
+		UndirectedEdge::new(2, 2, 1),
 	];
 	let expected_nodes = vec![
 		Node {index: 0, edges: Box::new(vec![NodeNeighbor {weight: 1, neighbor: 1}, NodeNeighbor {weight: -1, neighbor: 2}])},
