@@ -5,6 +5,12 @@ pub struct UndirectedEdge {
 	pub b: i32,
 }
 
+impl UndirectedEdge {
+	pub fn connects_to(&self, node: &Node) -> bool {
+		self.a == node.index || self.b == node.index
+	}
+}
+
 #[derive(Debug)]
 pub struct NodeNeighbor {
 	pub weight: i32,
@@ -56,6 +62,26 @@ impl Graph {
 //		println!("{:?}", nodes);
 		nodes
 	}
+}
+
+#[test]
+fn test_connects_to() {
+	let edge = UndirectedEdge { weight: 0, a: 0, b: 1};
+	let a = Node { index: 0, edges: Box::new(vec![]) };
+	let b = Node { index: 1, edges: Box::new(vec![]) };
+
+	assert!(edge.connects_to(&a));
+	assert!(edge.connects_to(&b));
+}
+
+#[test]
+fn test_does_not_connect_to() {
+	let edge = UndirectedEdge { weight: 0, a: 0, b: 1};
+	let a = Node { index: 2, edges: Box::new(vec![]) };
+	let b = Node { index: -1, edges: Box::new(vec![]) };
+
+	assert!(!edge.connects_to(&a));
+	assert!(!edge.connects_to(&b));
 }
 
 #[test]
