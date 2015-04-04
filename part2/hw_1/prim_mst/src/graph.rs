@@ -29,6 +29,7 @@ pub struct NodeNeighbor {
 #[derive(Debug)]
 pub struct Node {
 	pub index: i32,
+	pub in_tree: bool,
 	pub edges: Box<Vec<NodeNeighbor>>,
 }
 
@@ -50,6 +51,9 @@ impl PartialEq<Node> for Node {
 }
 
 impl Node {
+	pub fn new(index: i32, edges: Box<Vec<NodeNeighbor>>) -> Node {
+		Node { index: index, edges: edges, in_tree: false }
+	}
 }
 
 pub struct Graph {
@@ -60,7 +64,7 @@ impl Graph {
 	pub fn create_nodes(node_count: i32, edges: &Vec<UndirectedEdge>) -> Vec<Node> {
 		let mut nodes: Vec<Node> = Vec::with_capacity(node_count as usize);
 		for i in 0..node_count {
-			nodes.push(Node { index: i, edges: Box::new(Vec::new()) });
+			nodes.push(Node::new(i, Box::new(Vec::new())));
 		}
 
 		for edge in edges.iter() {
@@ -76,8 +80,8 @@ impl Graph {
 #[test]
 fn test_connects_to() {
 	let edge = UndirectedEdge::new(0, 0, 1);
-	let a = Node { index: 0, edges: Box::new(vec![]) };
-	let b = Node { index: 1, edges: Box::new(vec![]) };
+	let a = Node::new(0, Box::new(vec![]));
+	let b = Node::new(1, Box::new(vec![]));
 
 	assert!(edge.connects_to(&a));
 	assert!(edge.connects_to(&b));
@@ -86,8 +90,8 @@ fn test_connects_to() {
 #[test]
 fn test_does_not_connect_to() {
 	let edge = UndirectedEdge::new(0, 0, 1);
-	let a = Node { index: 2, edges: Box::new(vec![]) };
-	let b = Node { index: -1, edges: Box::new(vec![]) };
+	let a = Node::new(2, Box::new(vec![]));
+	let b = Node::new(-1, Box::new(vec![]));
 
 	assert!(!edge.connects_to(&a));
 	assert!(!edge.connects_to(&b));
@@ -101,18 +105,60 @@ fn test_create_nodes() {
 		UndirectedEdge::new(2, 2, 1),
 	];
 	let expected_nodes = vec![
-		Node {index: 0, edges: Box::new(vec![NodeNeighbor {weight: 1, neighbor: 1}, NodeNeighbor {weight: -1, neighbor: 2}])},
-		Node {index: 1, edges: Box::new(vec![NodeNeighbor {weight: 1, neighbor: 0}, NodeNeighbor {weight: 2, neighbor: 2}])},
-		Node {index: 2, edges: Box::new(vec![NodeNeighbor {weight: -1, neighbor: 0}, NodeNeighbor {weight: 2, neighbor: 1}])},
-		Node {index: 3, edges: Box::new(vec![])},
+		Node::new(0, Box::new(vec![NodeNeighbor {weight: 1, neighbor: 1}, NodeNeighbor {weight: -1, neighbor: 2}])),
+		Node::new(1, Box::new(vec![NodeNeighbor {weight: 1, neighbor: 0}, NodeNeighbor {weight: 2, neighbor: 2}])),
+		Node::new(2, Box::new(vec![NodeNeighbor {weight: -1, neighbor: 0}, NodeNeighbor {weight: 2, neighbor: 1}])),
+		Node::new(3, Box::new(vec![])),
 	];
 	let nodes = Graph::create_nodes(4, &edges);
 	for i in 0..nodes.len() {
 		assert_eq!(nodes[i], expected_nodes[i]);
 	}
 }
-//
-//#[test]
-//fn test_ratio() {
-//	assert_eq!((Job {weight: 10, duration: 5}).ratio(), 2.0 as f32);
-//}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+trait MstGreedyFinder {
+	fn edges(&self) -> &Vec<UndirectedEdge>;
+	fn greedy_node_index(&self, graph: &Graph) -> i32;
+	fn remove_related_edges(&mut self, node: &Node);
+
+	//	fn remove_node(&mut self, node: &Node) {
+	//		let mut edges = self.edges();
+	//		edges.retain(|edge| {
+	//			!(edge.crosses_cut && edge.connects_to(node))
+	//		})
+	//		for edge in edges.iter() {
+	//			if (edge.connects_to(node))
+	//		}
+	//	}
+}
+
+pub struct BruteForceMstGreedyFinder {
+	edges: Box<Vec<UndirectedEdge>>,
+}
+
+impl MstGreedyFinder for BruteForceMstGreedyFinder {
+	fn edges(&self) -> &Vec<UndirectedEdge> {
+		&*(self.edges)
+	}
+	fn greedy_node_index(&self, graph: &Graph) -> i32 {
+		0
+	}
+	fn remove_related_edges(&mut self, node: &Node) {
+
+	}
+}
+
+#[test]
+fn it_only_uses_edges_crossing_the_cut() {
+	let edges = vec![
+		UndirectedEdge { weight: 1, a: 0, b: 1 , crosses_cut: false },
+		UndirectedEdge { weight: -1, a: 0, b: 2, crosses_cut: true },
+		UndirectedEdge { weight: 2, a: 2, b: 1, crosses_cut: false },
+	];
+	let finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
+
+	let graph = Graph {  nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
+	assert_eq!(finder.greedy_node_index(&graph), 1);
+}
