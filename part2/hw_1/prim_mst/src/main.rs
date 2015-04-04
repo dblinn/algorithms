@@ -1,7 +1,6 @@
 #![feature(core)]
 
 mod graph;
-mod mst_greedy_finder;
 
 use std::error::Error;
 use std::io::BufReader;

@@ -61,6 +61,16 @@ pub struct Graph {
 }
 
 impl Graph {
+	pub fn node_index_not_in_tree(&self, edge: &UndirectedEdge) -> Option<i32> {
+		if (!self.nodes[edge.a as usize].in_tree) { return Some(edge.a); }
+		if (!self.nodes[edge.b as usize].in_tree) { return Some(edge.b); }
+		None
+	}
+
+	pub fn mark_in_tree(&mut self, node_index: i32) {
+		self.nodes[node_index as usize].in_tree = true;
+	}
+
 	pub fn create_nodes(node_count: i32, edges: &Vec<UndirectedEdge>) -> Vec<Node> {
 		let mut nodes: Vec<Node> = Vec::with_capacity(node_count as usize);
 		for i in 0..node_count {
@@ -116,6 +126,22 @@ fn test_create_nodes() {
 	}
 }
 
+#[test]
+fn test_node_index_not_in_tree() {
+	let edges = vec![
+		UndirectedEdge::new(1, 0, 1),
+		UndirectedEdge::new(-1, 0, 2),
+		UndirectedEdge::new(2, 2, 1)
+	];
+	let mut graph = Graph { nodes: Box::new(Graph::create_nodes(3, &edges)) };
+
+	let edge = UndirectedEdge::new(1, 0, 1);
+	graph.mark_in_tree(0);
+	assert_eq!(graph.node_index_not_in_tree(&edge).unwrap(), 1);
+	graph.mark_in_tree(1);
+	assert_eq!(graph.node_index_not_in_tree(&edge), None);
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 trait MstGreedyFinder {
@@ -159,6 +185,11 @@ fn it_only_uses_edges_crossing_the_cut() {
 	];
 	let finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
-	let graph = Graph {  nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
+	let graph = Graph { nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
 	assert_eq!(finder.greedy_node_index(&graph), 1);
+}
+
+#[test]
+fn it_picks_the_min_edge_crossing_the_cut() {
+
 }
