@@ -57,17 +57,22 @@ impl Node {
 }
 
 pub struct Graph {
-	pub nodes: Box<Vec<Node>>
+	pub nodes: Box<Vec<Node>>,
+	pub tree_weights: Box<Vec<Node>>,
 }
 
 impl Graph {
+	pub fn new(nodes: Box<Vec<Node>>) -> Graph {
+		Graph { nodes: nodes, tree_weights: Box::new(Vec::new()) }
+	}
+
 	pub fn node_index_not_in_tree(&self, edge: &UndirectedEdge) -> Option<i32> {
 		if !self.nodes[edge.a as usize].in_tree { return Some(edge.a); }
 		if !self.nodes[edge.b as usize].in_tree { return Some(edge.b); }
 		None
 	}
 
-	pub fn mark_in_tree(&mut self, node_index: i32) {
+	pub fn mark_in_tree(&mut self, node_index: i32, edge_weight: i32) {
 		self.nodes[node_index as usize].in_tree = true;
 	}
 
@@ -132,12 +137,12 @@ fn test_node_index_not_in_tree() {
 		UndirectedEdge::new(-1, 0, 2),
 		UndirectedEdge::new(2, 2, 1)
 	];
-	let mut graph = Graph { nodes: Box::new(Graph::create_nodes(3, &edges)) };
+	let mut graph = Graph::new(Box::new(Graph::create_nodes(3, &edges)));
 
 	let edge = UndirectedEdge::new(1, 0, 1);
-	graph.mark_in_tree(0);
+	graph.mark_in_tree(0, 0);
 	assert_eq!(graph.node_index_not_in_tree(&edge).unwrap(), 1);
-	graph.mark_in_tree(1);
+	graph.mark_in_tree(1, 0);
 	assert_eq!(graph.node_index_not_in_tree(&edge), None);
 }
 
@@ -184,7 +189,7 @@ fn it_only_uses_edges_crossing_the_cut() {
 	];
 	let finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
-	let graph = Graph { nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
+	let graph = Graph::new(Box::new(Graph::create_nodes(3, finder.edges())));
 	assert_eq!(finder.greedy_node_index(&graph), 1);
 }
 
@@ -198,8 +203,8 @@ fn it_picks_the_min_edge_crossing_the_cut() {
 	];
 	let finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
-	let mut graph = Graph { nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
-	graph.mark_in_tree(1);
+	let mut graph = Graph::new(Box::new(Graph::create_nodes(3, finder.edges())));
+	graph.mark_in_tree(1, 0);
 	assert_eq!(finder.greedy_node_index(&graph), 2);
 }
 
@@ -212,8 +217,8 @@ fn it_removes_related_edges() {
 	];
 	let mut finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
-	let mut graph = Graph { nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
-	graph.mark_in_tree(0);
+	let mut graph = Graph::new(Box::new(Graph::create_nodes(3, finder.edges())));
+	graph.mark_in_tree(0, 0);
 	finder.remove_related_edges(&(Node { index: 1, in_tree: true, edges: Box::new(vec![]) }));
 	assert_eq!(finder.edges().len(), 1);
 }
@@ -227,8 +232,8 @@ fn it_marks_remaining_related_edges_as_crossing_the_cut() {
 	];
 	let mut finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
-	let mut graph = Graph { nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
-	graph.mark_in_tree(0);
+	let mut graph = Graph::new(Box::new(Graph::create_nodes(3, finder.edges())));
+	graph.mark_in_tree(0, 0);
 	finder.remove_related_edges(&(Node { index: 1, in_tree: true, edges: Box::new(vec![]) }));
 	assert!(finder.edges().iter().all(|edge| edge.crosses_cut ));
 }

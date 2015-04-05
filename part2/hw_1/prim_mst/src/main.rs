@@ -24,7 +24,7 @@ fn main() {
 	];
 
 	for example in examples.iter() {
-			run_example(example);
+		run_example(example);
 	}
 }
 
@@ -39,12 +39,11 @@ fn run_example(example: &Example) {
 	};
 	let mut reader = BufReader::new(&mut file);
 
-	build_graph(&mut reader, &file_name);
-//	let mut schedule = Box::new(build_graph(&mut reader, &display));
-//	examine_schedule_correctness(example, &mut *schedule);
+	let mut graph = build_graph(&mut reader, &file_name);
+	examine_graph_correctness(example, &graph)
 }
 
-fn build_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display) {
+fn build_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display) -> Graph {
 	let (node_count, edge_count) = read_graph_size(reader);
 	println!("In file {}, read a graph size of: {} nodes, {} edges", file_name, node_count, edge_count);
 
@@ -60,10 +59,13 @@ fn build_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display
 	}
 
 	let mut nodes = Graph::create_nodes(node_count, &edges);
-//	nodes = Graph::create_nodes(node_count, edges);
-
 	println!("Read {} edges", edges.len());
-//	Schedule { edges: Box::new(edges) }
+
+	Graph::new(Box::new(nodes))
+}
+
+fn examine_graph_correctness(example: &Example, graph: &Graph) {
+
 }
 
 fn read_graph_size(reader: &mut BufReader<&mut File>) -> (i32, i32) {
