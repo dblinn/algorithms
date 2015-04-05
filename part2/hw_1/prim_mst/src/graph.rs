@@ -39,8 +39,8 @@ impl PartialEq<Node> for Node {
 		if self.index != other.index { return false; }
 		if self.edges.len() != other.edges.len() { return false; }
 		for i in 0..self.edges.len() {
-			if (self.edges[i].weight != other.edges[i].weight) { return false; }
-			if (self.edges[i].neighbor != other.edges[i].neighbor) { return false; }
+			if self.edges[i].weight != other.edges[i].weight { return false; }
+			if self.edges[i].neighbor != other.edges[i].neighbor { return false; }
 		}
 		true
 	}
@@ -62,8 +62,8 @@ pub struct Graph {
 
 impl Graph {
 	pub fn node_index_not_in_tree(&self, edge: &UndirectedEdge) -> Option<i32> {
-		if (!self.nodes[edge.a as usize].in_tree) { return Some(edge.a); }
-		if (!self.nodes[edge.b as usize].in_tree) { return Some(edge.b); }
+		if !self.nodes[edge.a as usize].in_tree { return Some(edge.a); }
+		if !self.nodes[edge.b as usize].in_tree { return Some(edge.b); }
 		None
 	}
 
@@ -82,7 +82,6 @@ impl Graph {
 			nodes[edge.b as usize].edges.push(NodeNeighbor { weight: edge.weight, neighbor: edge.a });
 		}
 
-//		println!("{:?}", nodes);
 		nodes
 	}
 }
@@ -148,16 +147,6 @@ trait MstGreedyFinder {
 	fn edges(&self) -> &Vec<UndirectedEdge>;
 	fn greedy_node_index(&self, graph: &Graph) -> i32;
 	fn remove_related_edges(&mut self, node: &Node);
-
-	//	fn remove_node(&mut self, node: &Node) {
-	//		let mut edges = self.edges();
-	//		edges.retain(|edge| {
-	//			!(edge.crosses_cut && edge.connects_to(node))
-	//		})
-	//		for edge in edges.iter() {
-	//			if (edge.connects_to(node))
-	//		}
-	//	}
 }
 
 pub struct BruteForceMstGreedyFinder {
@@ -182,7 +171,7 @@ impl MstGreedyFinder for BruteForceMstGreedyFinder {
 		(*self.edges).retain(|edge| {
 			!(edge.crosses_cut && edge.connects_to(node))
 		});
-		for edge in edges.iter() { if edge.connects_to(node) { edge.crosses_cut = true; } }
+		for edge in (*self.edges).iter_mut() { if edge.connects_to(node) { edge.mark_crossing(); } }
 	}
 }
 
@@ -216,10 +205,30 @@ fn it_picks_the_min_edge_crossing_the_cut() {
 
 #[test]
 fn it_removes_related_edges() {
+	let edges = vec![
+		UndirectedEdge { weight: 2, a: 0, b: 1 , crosses_cut: true },
+		UndirectedEdge { weight: 1, a: 1, b: 2, crosses_cut: true },
+		UndirectedEdge { weight: -1, a: 2, b: 0, crosses_cut: false },
+	];
+	let mut finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
+	let mut graph = Graph { nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
+	graph.mark_in_tree(0);
+	finder.remove_related_edges(&(Node { index: 1, in_tree: true, edges: Box::new(vec![]) }));
+	assert_eq!(finder.edges().len(), 1);
 }
 
 #[test]
 fn it_marks_remaining_related_edges_as_crossing_the_cut() {
+	let edges = vec![
+		UndirectedEdge { weight: 2, a: 0, b: 1 , crosses_cut: true },
+		UndirectedEdge { weight: 1, a: 0, b: 2, crosses_cut: true },
+		UndirectedEdge { weight: -1, a: 2, b: 1, crosses_cut: false },
+	];
+	let mut finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
+	let mut graph = Graph { nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
+	graph.mark_in_tree(0);
+	finder.remove_related_edges(&(Node { index: 1, in_tree: true, edges: Box::new(vec![]) }));
+	assert!(finder.edges().iter().all(|edge| edge.crosses_cut ));
 }
