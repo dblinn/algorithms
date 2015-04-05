@@ -168,11 +168,21 @@ impl MstGreedyFinder for BruteForceMstGreedyFinder {
 	fn edges(&self) -> &Vec<UndirectedEdge> {
 		&*(self.edges)
 	}
+	// Find the node in lowest edge node that crosses the cut.
 	fn greedy_node_index(&self, graph: &Graph) -> i32 {
-		0
+		let min_edge = (*self.edges).iter()
+			.filter(|edge| edge.crosses_cut)
+			.min_by(|edge| edge.weight)
+			.unwrap();
+		graph.node_index_not_in_tree(min_edge).unwrap()
 	}
-	fn remove_related_edges(&mut self, node: &Node) {
 
+	// Remove all edges already crossing the cut that connect to the input edge
+	fn remove_related_edges(&mut self, node: &Node) {
+		(*self.edges).retain(|edge| {
+			!(edge.crosses_cut && edge.connects_to(node))
+		});
+		for edge in edges.iter() { if edge.connects_to(node) { edge.crosses_cut = true; } }
 	}
 }
 
@@ -180,8 +190,8 @@ impl MstGreedyFinder for BruteForceMstGreedyFinder {
 fn it_only_uses_edges_crossing_the_cut() {
 	let edges = vec![
 		UndirectedEdge { weight: 1, a: 0, b: 1 , crosses_cut: false },
-		UndirectedEdge { weight: -1, a: 0, b: 2, crosses_cut: true },
-		UndirectedEdge { weight: 2, a: 2, b: 1, crosses_cut: false },
+		UndirectedEdge { weight: -1, a: 0, b: 2, crosses_cut: false },
+		UndirectedEdge { weight: 2, a: 1, b: 2, crosses_cut: true },
 	];
 	let finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
@@ -190,6 +200,26 @@ fn it_only_uses_edges_crossing_the_cut() {
 }
 
 #[test]
+// This would be much write and understand if we could mock and double.
 fn it_picks_the_min_edge_crossing_the_cut() {
+	let edges = vec![
+		UndirectedEdge { weight: 2, a: 0, b: 1 , crosses_cut: true },
+		UndirectedEdge { weight: 1, a: 1, b: 2, crosses_cut: true },
+		UndirectedEdge { weight: -1, a: 2, b: 0, crosses_cut: false },
+	];
+	let finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
+
+	let mut graph = Graph { nodes: Box::new(Graph::create_nodes(3, finder.edges())) };
+	graph.mark_in_tree(1);
+	assert_eq!(finder.greedy_node_index(&graph), 2);
+}
+
+#[test]
+fn it_removes_related_edges() {
+
+}
+
+#[test]
+fn it_marks_remaining_related_edges_as_crossing_the_cut() {
 
 }
