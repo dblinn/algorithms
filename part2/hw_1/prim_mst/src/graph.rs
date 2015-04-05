@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UndirectedEdge {
 	pub weight: i32,
 	pub a: i32,
@@ -56,14 +56,20 @@ impl Node {
 	}
 }
 
+#[derive(Debug)]
 pub struct Graph {
 	pub nodes: Box<Vec<Node>>,
-	pub tree_weights: Box<Vec<Node>>,
+	pub tree_weights: Box<Vec<i32>>,
+	pub mst_cost: i64,
 }
 
 impl Graph {
 	pub fn new(nodes: Box<Vec<Node>>) -> Graph {
-		Graph { nodes: nodes, tree_weights: Box::new(Vec::new()) }
+		Graph { nodes: nodes, tree_weights: Box::new(Vec::new()), mst_cost: 0 }
+	}
+
+	pub fn node(&self, node_index: i32) -> &Node {
+		&(*self.nodes)[node_index as usize]
 	}
 
 	pub fn node_index_not_in_tree(&self, edge: &UndirectedEdge) -> Option<i32> {
@@ -73,7 +79,11 @@ impl Graph {
 	}
 
 	pub fn mark_in_tree(&mut self, node_index: i32, edge_weight: i32) {
-		self.nodes[node_index as usize].in_tree = true;
+		let ref mut node = &mut self.nodes[node_index as usize];
+		assert!(!node.in_tree);
+		node.in_tree = true;
+		self.tree_weights.push(edge_weight);
+		self.mst_cost += edge_weight as i64;
 	}
 
 	pub fn create_nodes(node_count: i32, edges: &Vec<UndirectedEdge>) -> Vec<Node> {
@@ -148,27 +158,38 @@ fn test_node_index_not_in_tree() {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-trait MstGreedyFinder {
+pub trait MstGreedyFinder {
 	fn edges(&self) -> &Vec<UndirectedEdge>;
-	fn greedy_node_index(&self, graph: &Graph) -> i32;
+	fn done(&self) -> bool { self.edges().is_empty() }
+	fn minimum_edge(&self) -> UndirectedEdge;
+	fn greedy_node_index(&self, graph: &Graph) -> (i32, i32);
 	fn remove_related_edges(&mut self, node: &Node);
 }
 
 pub struct BruteForceMstGreedyFinder {
-	edges: Box<Vec<UndirectedEdge>>,
+	pub edges: Box<Vec<UndirectedEdge>>,
 }
 
 impl MstGreedyFinder for BruteForceMstGreedyFinder {
 	fn edges(&self) -> &Vec<UndirectedEdge> {
 		&*(self.edges)
 	}
+
+	fn minimum_edge(&self) -> UndirectedEdge {
+		let min_edge = (*self.edges).iter().min_by(|edge| edge.weight).unwrap();
+		(*min_edge).clone()
+	}
+
 	// Find the node in lowest edge node that crosses the cut.
-	fn greedy_node_index(&self, graph: &Graph) -> i32 {
+	fn greedy_node_index(&self, graph: &Graph) -> (i32, i32) {
 		let min_edge = (*self.edges).iter()
 			.filter(|edge| edge.crosses_cut)
 			.min_by(|edge| edge.weight)
 			.unwrap();
-		graph.node_index_not_in_tree(min_edge).unwrap()
+		(
+			graph.node_index_not_in_tree(min_edge).unwrap(),
+			min_edge.weight
+		)
 	}
 
 	// Remove all edges already crossing the cut that connect to the input edge
@@ -190,7 +211,8 @@ fn it_only_uses_edges_crossing_the_cut() {
 	let finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
 	let graph = Graph::new(Box::new(Graph::create_nodes(3, finder.edges())));
-	assert_eq!(finder.greedy_node_index(&graph), 1);
+	let (node_index, edge_weight) = finder.greedy_node_index(&graph);
+	assert_eq!(node_index, 1);
 }
 
 #[test]
@@ -205,7 +227,8 @@ fn it_picks_the_min_edge_crossing_the_cut() {
 
 	let mut graph = Graph::new(Box::new(Graph::create_nodes(3, finder.edges())));
 	graph.mark_in_tree(1, 0);
-	assert_eq!(finder.greedy_node_index(&graph), 2);
+	let (node_index, edge_weight) = finder.greedy_node_index(&graph);
+	assert_eq!(node_index, 2);
 }
 
 #[test]

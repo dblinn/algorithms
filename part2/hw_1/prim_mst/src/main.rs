@@ -7,7 +7,7 @@ use std::io::BufReader;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use graph::{UndirectedEdge, Node, Graph};
+use graph::{UndirectedEdge, Graph, MstGreedyFinder, BruteForceMstGreedyFinder};
 
 struct Example<'a> {
 	file_name: &'a str,
@@ -17,10 +17,10 @@ struct Example<'a> {
 
 fn main() {
 	let examples = [
-		Example {file_name: "test_cases/test_1.txt", mst_cost: 31814, mst_ordered_weights: &[1, 2, 3]},
-		Example {file_name: "test_cases/test_2.txt", mst_cost: 60213, mst_ordered_weights: &[1, 1, 2]},
-		Example {file_name: "test_cases/test_3.txt", mst_cost: 674634, mst_ordered_weights: &[-10, -1, -8, -3, 6]},
-//		Example {file_name: "test_cases/edges.txt", mst_cost: -1, mst_ordered_weights: &[]},
+		Example {file_name: "test_cases/test_1.txt", mst_cost: 6, mst_ordered_weights: &[1, 2, 3]},
+		Example {file_name: "test_cases/test_2.txt", mst_cost: 4, mst_ordered_weights: &[1, 1, 2]},
+		Example {file_name: "test_cases/test_3.txt", mst_cost: -16, mst_ordered_weights: &[-10, -1, -8, -3, 6]},
+		Example {file_name: "test_cases/edges.txt", mst_cost: -1, mst_ordered_weights: &[]},
 	];
 
 	for example in examples.iter() {
@@ -39,11 +39,16 @@ fn run_example(example: &Example) {
 	};
 	let mut reader = BufReader::new(&mut file);
 
-	let mut graph = build_graph(&mut reader, &file_name);
-	examine_graph_correctness(example, &graph)
+	let (node_count, edges) = read_edges(&mut reader, &file_name);
+	let nodes = Graph::create_nodes(node_count, &edges);
+	let mut graph = Graph::new(Box::new(nodes));
+	let mut finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
+
+	build_minimum_spanning_tree(&mut graph, &mut finder);
+	examine_graph_correctness(example, &graph);
 }
 
-fn build_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display) -> Graph {
+fn read_edges(reader: &mut BufReader<&mut File>, file_name: &std::path::Display) -> (i32, Vec<UndirectedEdge>) {
 	let (node_count, edge_count) = read_graph_size(reader);
 	println!("In file {}, read a graph size of: {} nodes, {} edges", file_name, node_count, edge_count);
 
@@ -58,14 +63,34 @@ fn build_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display
 		}
 	}
 
-	let mut nodes = Graph::create_nodes(node_count, &edges);
 	println!("Read {} edges", edges.len());
+	(node_count, edges)
+}
 
-	Graph::new(Box::new(nodes))
+fn build_minimum_spanning_tree(graph: &mut Graph, finder: &mut MstGreedyFinder) {
+	let initial_edge = finder.minimum_edge();
+	graph.nodes[initial_edge.a as usize].in_tree = true;
+	finder.remove_related_edges(graph.node(initial_edge.a));
+
+	loop {
+		if finder.done() { break; }
+
+		let (node_index, edge_weight) = finder.greedy_node_index(graph);
+		graph.mark_in_tree(node_index, edge_weight);
+		finder.remove_related_edges(graph.node(node_index))
+	}
+
+	assert!(graph.nodes.iter().all(|node| node.in_tree))
 }
 
 fn examine_graph_correctness(example: &Example, graph: &Graph) {
-
+	if example.mst_ordered_weights.is_empty() {
+		println!("Found cost {}", graph.mst_cost);
+	}
+	else {
+		println!("Expected mst weight {}, found {}", example.mst_cost, graph.mst_cost);
+		println!("Expected mst edges {:?}, found {:?}", example.mst_ordered_weights, graph.tree_weights);
+	}
 }
 
 fn read_graph_size(reader: &mut BufReader<&mut File>) -> (i32, i32) {
