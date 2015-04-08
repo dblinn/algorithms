@@ -1,8 +1,5 @@
 [package]
 
-name = "graph_clustering"
+name = "graph"
 version = "0.0.1"
 authors = ["David Blinn <dblinn@cyrusinnovation.com>"]
-
-[dependencies.graph]
-path = "graph"
