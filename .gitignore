@@ -4,6 +4,7 @@
 *.rlib
 *.dll
 **/.idea
+/scratch
 
 # Executables
 *.exe

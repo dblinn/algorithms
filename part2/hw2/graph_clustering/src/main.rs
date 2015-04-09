@@ -5,7 +5,7 @@ use std::io::BufReader;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use graph::*;
+use graph::core::*;
 
 extern crate graph;
 
@@ -54,7 +54,7 @@ fn run_example(example: &Example) {
 fn read_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display) -> (i32, Vec<UndirectedEdge>) {
 	let node_count = read_graph_size(reader);
 
-	let mut edges: Vec<UndirectedEdge> = Vec::with_capacity(edge_count as usize);
+	let mut edges: Vec<UndirectedEdge> = Vec::with_capacity((node_count * 2) as usize);
 
 	for line in reader.lines() {
 		match line {
@@ -62,7 +62,7 @@ fn read_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display)
 			Ok(line_contents) => {
 				edges.push(read_edge_from_line(line_contents.trim().as_slice()));
 			}
-			}
+		}
 	}
 
 	println!("In file {}, read a graph size of: {} nodes, {} edges", file_name, node_count, edges.len());
