@@ -2,6 +2,7 @@
 
 /**
 Also known as the Disjoint-Set data structure.
+Implements a UnionFind with union by rank and path compression optimizations.
 Some information on UnionFind on [Wikipedia](http://en.wikipedia.org/wiki/Disjoint-set_data_structure).
 Creating a set:
  ```rust
@@ -46,12 +47,18 @@ assert!(*y.find() != *z.find());
  ```
 */
 
+use std::cmp::Ordering;
+use std::fmt::Debug;
+
 #[derive(PartialEq, Eq, Debug)]
 pub struct UnionFind<'a, T: 'a> {
 	/** The value of the node. */
 	pub value: T,
-	/**  Some(parent) for a leaf, or None for a canonical node.*/
-	pub parent: Option<&'a UnionFind<'a, T>>
+	/**  Some(parent) for a leaf, or None for a root node where parent is the index of the parent union find in a vector/slice*/
+	pub parent_index: Option<u32>,
+
+	pub index: u32,
+	pub rank: u32,
 }
 
 /**
@@ -60,20 +67,19 @@ pub struct UnionFind<'a, T: 'a> {
  */
 impl <'a, T> UnionFind<'a, T> {
 	/**  Encapsulates a `value` into a `UnionFind` node. It's parent is set to `None`, meaning it's a canonical node. */
-	pub fn make_set(value: T) -> UnionFind<'a, T> {
-		UnionFind { value: value, parent: None }
+	pub fn make_set(value: T, index: u32) -> UnionFind<'a, T> {
+		UnionFind { value: value, parent: None, rank: 0, index: index }
 	}
-	/** Fetch the canonical element of the `UnionFind` dataset containing this one. */
-	pub fn find (&self) -> &UnionFind<T> {
+	/** Fetch the canonical element of the `UnionFind` dataset containing this one. Must be mutable to support path compression optimization*/
+	pub fn find (&'a mut self) -> &'a UnionFind<T> {
 		match self.parent {
-			Some(n) => n.find(),
+			Some(ref mut n) => n.find(),
 			None    => self
 		}
 	}
 	/** Union two `UnionFind` data structures together. */
-	pub fn union(&'a self, other: &mut UnionFind<'a, T>) -> &'a UnionFind<'a, T> {
+	pub fn union(&'a mut self, other: &'a mut UnionFind<'a, T>) {
 		other.parent = Some(self);
-		self
 	}
 }
 
@@ -89,7 +95,7 @@ fn can_create () {
 
 #[test]
 fn can_union () {
-   let one = UnionFind::make_set(1);
+   let mut one = UnionFind::make_set(1);
    let mut two = UnionFind::make_set(2);
    one.union(&mut two);
    assert_eq!(*two.find(), one);
@@ -97,7 +103,7 @@ fn can_union () {
 
 #[test]
 fn can_find () {
-   let one = UnionFind::make_set(1);
+   let mut one = UnionFind::make_set(1);
    let mut two = UnionFind::make_set(2);
    // Does it find on bare?
    assert_eq!(one.find().value, one.value);
@@ -105,4 +111,26 @@ fn can_find () {
    // Does it find the parent correctly?
    assert_eq!(two.find().value, one.value);
    assert_eq!(one.find().value, one.value);
+}
+
+#[test]
+fn can_chain () {
+	let mut one = UnionFind::make_set(1);
+	let mut two = UnionFind::make_set(2);
+	let mut three = UnionFind::make_set(3);
+
+	one.union(&mut two);
+	two.union(&mut three);
+
+	let mut a = UnionFind::make_set(4);
+	let mut b = UnionFind::make_set(5);
+	let mut c = UnionFind::make_set(5);
+
+	a.union(&mut b);
+	a.union(&mut c);
+	one.union(&mut a);
+
+	assert_eq!(*two.find(), one);
+	assert_eq!(*three.find(), one);
+	assert_eq!(*three.find(), *two.find());
 }

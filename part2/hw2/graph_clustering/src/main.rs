@@ -29,6 +29,20 @@ fn main() {
 	for example in examples.iter() {
 		run_example(example);
 	}
+
+	let mut one = UnionFind::make_set(1);
+	let mut two = UnionFind::make_set(2);
+	let mut three = UnionFind::make_set(3);
+
+	println!("Beginning union");
+	one.union(&mut two);
+	two.union(&mut three);
+
+	println!("Beginning find");
+//	println!("{:?} {:?} {:?}", one.find(), two.find(), three.find());
+	println!("{} {} {}", one.find().value, two.find().value, three.find().value);
+//	println!("{}", one.find().value);
+	assert_eq!(*three.find(), one);
 }
 
 fn run_example(example: &Example) {
@@ -43,8 +57,8 @@ fn run_example(example: &Example) {
 	let mut reader = BufReader::new(&mut file);
 
 	let (node_count, edges) = read_graph(&mut reader, &file_name);
-//	let nodes = Graph::create_nodes(node_count, &edges);
-//	let mut graph = Graph::new(Box::new(nodes));
+	let mut graph = Graph::new(Graph::create_nodes(node_count));
+
 //	let mut finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
 
 //	build_minimum_spanning_tree(&mut graph, &mut finder);
