@@ -3,17 +3,17 @@ use core::node::Node;
 #[derive(Debug, Clone)]
 pub struct UndirectedEdge {
 	pub weight: i32,
-	pub a: i32,
-	pub b: i32,
+	pub a: u32,
+	pub b: u32,
 }
 
 impl UndirectedEdge {
-	pub fn new(weight: i32, a: i32, b: i32) -> UndirectedEdge {
+	pub fn new(weight: i32, a: u32, b: u32) -> UndirectedEdge {
 		UndirectedEdge { weight: weight, a: a, b: b}
 	}
 
 	pub fn connects_to(&self, node: &Node) -> bool {
-		self.a == node.index || self.b == node.index
+		self.a == node.index as u32 || self.b == node.index as u32
 	}
 }
 

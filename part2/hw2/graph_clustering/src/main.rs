@@ -4,8 +4,10 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use graph::core::*;
+use petgraph::unionfind::UnionFind;
 
 extern crate graph;
+extern crate petgraph;
 
 struct Example<'a> {
 	file_name: &'a str,
@@ -40,13 +42,62 @@ fn run_example(example: &Example) {
 		};
 	let mut reader = BufReader::new(&mut file);
 
-	let (node_count, edges) = read_graph(&mut reader, &file_name);
-//	let nodes = Graph::create_nodes(node_count, &edges);
-//	let mut graph = Graph::new(Box::new(nodes));
-//	let mut finder = BruteForceMstGreedyFinder { edges: Box::new(edges) };
+	let (node_count, mut edges) = read_graph(&mut reader, &file_name);
+	let mut union = UnionFind::<u32>::new(node_count as usize);
 
-//	build_minimum_spanning_tree(&mut graph, &mut finder);
-//	examine_graph_correctness(example, &graph);
+	sort_edges_by_weight(&mut edges);
+	let distance = run_clustering(node_count, &mut union, &edges, example);
+	verify_example(example, distance);
+}
+
+fn sort_edges_by_weight(edges: &mut Vec<UndirectedEdge>) {
+	edges.sort_by(|a, b| { a.weight.partial_cmp(& b.weight).unwrap() });
+//	let weights = edges.iter().map(|edge| { edge.weight }).collect::<Vec<i32>>();
+//	println!("{:?}", weights);
+}
+
+// Runs kruskal-equivalent collection over the list of edges until the union count equals the
+// target in the example
+fn run_clustering(node_count: i32, u: &mut UnionFind<u32>, edges: &Vec<UndirectedEdge>, example: &Example) -> i32 {
+	let mut union_count = node_count;
+	let mut edges_added = 0;
+	let target_clusters = if example.cluster_count > 0 { example.cluster_count } else { 4 };
+	for edge in edges.iter() {
+		if u.union(edge.a, edge.b) {
+			union_count -= 1;
+//			println!("Added edge weight weight {} to the union. {}->{} clusters remaining.", edge.weight, (union_count + 1), union_count);
+		}
+		else {
+
+		}
+		edges_added += edges_added;
+		if union_count <= target_clusters { break; }
+	}
+
+//	println!("{:?}", u.clone().into_labeling());
+
+	let mut remaining_distance = 0;
+	for i in edges_added..edges.len() {
+		let ref edge = edges[i];
+		if u.union(edge.a, edge.b) {
+			remaining_distance = edge.weight;
+			break;
+//			println!("Edge with weight {} remainded", edge.weight);
+//			println!("{:?}", u.clone().into_labeling());
+		}
+	}
+
+	remaining_distance
+}
+
+fn verify_example(example: &Example, distance: i32) {
+	if example.cluster_count > 0 {
+		println!("For {} clusters, found a distance of {} and expected {}", example.cluster_count, distance, example.distance);
+		assert_eq!(example.distance, distance);
+	}
+	else {
+		println!("For 4 clusters, found a distance of {}", distance);
+	}
 }
 
 fn read_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display) -> (i32, Vec<UndirectedEdge>) {
@@ -79,7 +130,7 @@ fn read_edge_from_line(line: &str) -> UndirectedEdge {
 	let fields = line.split(" ").collect::<Vec<&str>>();
 	UndirectedEdge::new(
 		fields[2].parse::<i32>().unwrap(),
-		fields[0].parse::<i32>().unwrap() - 1,
-		fields[1].parse::<i32>().unwrap() - 1,
+		fields[0].parse::<u32>().unwrap() - 1,
+		fields[1].parse::<u32>().unwrap() - 1,
 	)
 }
