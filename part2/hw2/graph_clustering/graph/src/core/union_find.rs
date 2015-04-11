@@ -1,5 +1,3 @@
-// Based on UnionFind implementation at https://github.com/Hoverbear/union-find/blob/master/src/lib.rs
-
 /**
 Also known as the Disjoint-Set data structure.
 Some information on UnionFind on [Wikipedia](http://en.wikipedia.org/wiki/Disjoint-set_data_structure).
@@ -38,71 +36,102 @@ assert!(x.parent == None);
   UnionFind::make_set("Foo"),
   UnionFind::make_set("Bar"),
   UnionFind::make_set("Baz"));
-x.union(&mut y);
+x.clone().union(&mut y);
 // Check relationships.
-assert!(*y.find() == x);
-assert!(*y.find() == *x.find());
-assert!(*y.find() != *z.find());
+assert!(y.clone().find() == x);
+assert!(y.clone().find() == x.clone().find());
+assert!(y.find() != z.find());
  ```
-*/
-
-#[derive(PartialEq, Eq, Debug)]
-pub struct UnionFind<'a, T: 'a> {
+ */
+#[derive(Clone, PartialEq, Debug)]
+pub struct UnionFind<T> {
 	/** The value of the node. */
 	pub value: T,
 	/**  Some(parent) for a leaf, or None for a canonical node.*/
-	pub parent: Option<&'a UnionFind<'a, T>>
+	pub parent: Option<Box<UnionFind<T>>>,
+	pub rank: u32,
 }
 
 /**
  * The UnionFind data structure. This is a node that contains a value, and a reference to it's parent, if it has one.
  * All UnionFind nodes must be of a homogenious type.
  */
-impl <'a, T> UnionFind<'a, T> {
+impl<T> UnionFind<T> {
 	/**  Encapsulates a `value` into a `UnionFind` node. It's parent is set to `None`, meaning it's a canonical node. */
-	pub fn make_set(value: T) -> UnionFind<'a, T> {
-		UnionFind { value: value, parent: None }
+	pub fn make_set(value: T) -> UnionFind<T> {
+		UnionFind { value: value, parent: None, rank: 0 }
 	}
-	/** Fetch the canonical element of the `UnionFind` dataset containing this one. */
-	pub fn find (&self) -> &UnionFind<T> {
-		match self.parent {
-			Some(n) => n.find(),
-			None    => self
-		}
+
+	pub fn find(mut self) -> UnionFind<T> {
+		let parent = match self.parent {
+				Some(thing) => { thing.find() },
+				None => return self
+			};
+		self.parent = Some(Box::new(parent));
+		*self.parent.unwrap()
 	}
+
 	/** Union two `UnionFind` data structures together. */
-	pub fn union(&'a self, other: &mut UnionFind<'a, T>) -> &'a UnionFind<'a, T> {
-		other.parent = Some(self);
-		self
+	pub fn union(mut self, other: &mut UnionFind<T>, other_root: UnionFind<T>) {
+		let mut my_root = self.find();
+
+		if my_root.rank < other_root.rank {
+			self.parent = Some(Box::new(other_root));
+		} else if my_root.rank > other_root.rank {
+			other.parent = Some(Box::new(my_root));
+		} else {
+			my_root.rank = my_root.rank + 1;
+			other.parent = Some(Box::new(my_root));
+		}
 	}
 }
 
 #[test]
 fn can_create () {
-   // Create with integer.
-   let int_node = UnionFind::make_set(1);
-   assert_eq!(int_node.value, 1);
-   // With String
-   let string_node = UnionFind::make_set("Foo".to_string());
-   assert_eq!(string_node.value, "Foo".to_string());
+//	// Create with integer.
+//	let int_node = UnionFind::make_set(1);
+//	assert_eq!(int_node.value, 1);
+//	// With String
+//	let string_node = UnionFind::make_set("Foo".to_string());
+//	assert_eq!(string_node.value, "Foo".to_string());
 }
 
 #[test]
 fn can_union () {
-   let one = UnionFind::make_set(1);
-   let mut two = UnionFind::make_set(2);
-   one.union(&mut two);
-   assert_eq!(*two.find(), one);
+//	let one = UnionFind::make_set(1);
+//	let mut two = UnionFind::make_set(2);
+//	one.clone().union(&mut two, two.clone().find());
+//	assert_eq!(two.find(), one);
 }
 
 #[test]
 fn can_find () {
-   let one = UnionFind::make_set(1);
-   let mut two = UnionFind::make_set(2);
-   // Does it find on bare?
-   assert_eq!(one.find().value, one.value);
-   one.union(&mut two);
-   // Does it find the parent correctly?
-   assert_eq!(two.find().value, one.value);
-   assert_eq!(one.find().value, one.value);
+//	let one = UnionFind::make_set(1);
+//	let mut two = UnionFind::make_set(2);
+//	// Does it find on bare?
+//	assert_eq!(one.clone().find().value, one.value);
+//	one.clone().union(&mut two, two.clone().find());
+//	// Does it find the parent correctly?
+//	assert_eq!(two.find().value, one.value);
+//	assert_eq!(one.clone().find().value, one.value);
+}
+
+#[test]
+fn can_chain()
+{
+	let mut one = UnionFind::make_set(1);
+	let mut two = UnionFind::make_set(2);
+
+	let mut three = UnionFind::make_set(3);
+	let mut four = UnionFind::make_set(4);
+
+	let a = two.clone().find();
+	let b = four.clone().find();
+	let c = three.clone().find();
+
+	one.clone().union(&mut two, a);
+	three.clone().union(&mut four, b);
+	one.clone().union(&mut three, c);
+	println!("{} {}", one.clone().find().value, four.clone().find().value);
+	assert_eq!(one.find().value, four.find().value);
 }
