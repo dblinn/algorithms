@@ -23,7 +23,7 @@ fn main() {
 		Example {file_name: "test_cases/test_2.txt", cluster_count: 2, distance: 4472},
 		Example {file_name: "test_cases/test_2.txt", cluster_count: 3, distance: 3606},
 		Example {file_name: "test_cases/test_2.txt", cluster_count: 4, distance: 1414},
-//		Example {file_name: "test_cases/clustering.txt", cluster_count: -1, distance: -1},
+		Example {file_name: "test_cases/clustering.txt", cluster_count: -1, distance: -1},
 	];
 
 	for example in examples.iter() {
