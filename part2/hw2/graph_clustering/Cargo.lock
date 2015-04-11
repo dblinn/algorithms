@@ -3,9 +3,23 @@ name = "graph_clustering"
 version = "0.0.1"
 dependencies = [
  "graph 0.0.1",
+ "petgraph 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "fixedbitset"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "graph"
 version = "0.0.1"
+
+[[package]]
+name = "petgraph"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "fixedbitset 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 

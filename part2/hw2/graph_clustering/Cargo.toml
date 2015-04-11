@@ -6,3 +6,5 @@ authors = ["David Blinn <dblinn@cyrusinnovation.com>"]
 
 [dependencies.graph]
 path = "graph"
+
+[dependencies.petgraph]

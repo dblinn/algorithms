@@ -1,5 +1,3 @@
-#![feature(core)]
-
 mod graph;
 
 use std::error::Error;

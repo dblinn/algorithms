@@ -1,5 +1,3 @@
-#![feature(core)]
-
 use std::error::Error;
 use std::io::BufReader;
 use std::fs::File;
@@ -60,7 +58,7 @@ fn read_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display)
 		match line {
 			Err(why) => panic!("couldn't read {}: {}", file_name, Error::description(&why)),
 			Ok(line_contents) => {
-				edges.push(read_edge_from_line(line_contents.trim().as_slice()));
+				edges.push(read_edge_from_line(line_contents.trim().as_ref()));
 			}
 		}
 	}
