@@ -76,6 +76,7 @@ fn run_clustering(node_count: i32, u: &mut UnionFind<u32>, edges: &Vec<Undirecte
 
 //	println!("{:?}", u.clone().into_labeling());
 
+	// Find the minimum distance between any two clusters remaining.
 	let mut remaining_distance = 0;
 	for i in edges_added..edges.len() {
 		let ref edge = edges[i];
