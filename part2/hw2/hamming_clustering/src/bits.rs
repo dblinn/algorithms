@@ -1,20 +1,17 @@
 pub struct Bits;
 
 impl Bits {
-	// Counting bits set, Brian Kernighan's way
-	// Rust doesn't like the faster method recommended at
-	// https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-	// because it takes advantage of arithmetic overflow
+	// Taken from stanford bit hacks page https://graphics.stanford.edu/~seander/bithacks.html
+	// See the section "Counting bits set, in parallel", specifically the part that begins
+	// "The best method for counting bits in a 32-bit integer v is the following:"
+	// This produces integer overflow which causes rust to panic. There's no easy way to turn this off. Instead, you
+	// can use the OverflowingOps (http://doc.rust-lang.org/std/num/wrapping/trait.OverflowingOps.html) trait, but
+	// this is marked as unstable, so I'll just use the slower kernighan way.
 	pub fn count(number: &u32) -> u32 {
-		let mut v = *number; // count the number of bits set in v
-		let mut c = 0; // c accumulates the total bits set in v
-		loop
-		{
-			v &= v - 1; // clear the least significant bit set
-			c = c + 1;
-			if v == 0 { break; }
-		}
-		c
+		let mut v = *number;
+		v = v - ((v >> 1) & 0x55555555u32);                   	  // reuse input as temporary
+		v = (v & 0x33333333u32) + ((v >> 2) & 0x33333333u32);     // temp
+		((v + (v >> 4) & 0xF0F0F0Fu32) * 0x1010101u32) >> 24      // count
 	}
 
 	// Calculate the hamming distance
