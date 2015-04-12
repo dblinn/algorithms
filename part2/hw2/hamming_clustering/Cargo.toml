@@ -3,3 +3,5 @@
 name = "hamming_clustering"
 version = "0.0.1"
 authors = ["David Blinn <dblinn@cyrusinnovation.com>"]
+
+[dependencies.petgraph]
