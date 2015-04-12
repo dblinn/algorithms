@@ -4,7 +4,7 @@ impl Bits {
 	// Counting bits set, Brian Kernighan's way
 	// Rust doesn't like the faster method recommended at
 	// https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-	// because it takes advantage of arithmetic overflow
+	// because it takes advantage of arithmetic overflow. WrappingOps currently unstable so not using them.
 	#[inline]
 	pub fn count(number: &u32) -> u32 {
 		let mut v = *number; // count the number of bits set in v
@@ -21,7 +21,7 @@ impl Bits {
 	// Calculate the hamming distance
 	#[inline]
 	pub fn hamming_distance(a: &u32, b: &u32) -> u32 {
-		Bits::count(& (*a ^ *b))
+		Bits::count(&(a ^ b))
 	}
 }
 
