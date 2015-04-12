@@ -9,11 +9,10 @@ impl Bits {
 	pub fn count(number: &u32) -> u32 {
 		let mut v = *number; // count the number of bits set in v
 		let mut c = 0; // c accumulates the total bits set in v
-		loop
+		while v > 0
 		{
 			v &= v - 1; // clear the least significant bit set
 			c = c + 1;
-			if v == 0 { break; }
 		}
 		c
 	}
@@ -27,6 +26,7 @@ impl Bits {
 
 #[test]
 fn test_bit_count() {
+	assert_eq!(Bits::count(& 0), 0);
 	assert_eq!(Bits::count(& 1), 1);
 	assert_eq!(Bits::count(& 2), 1);
 	assert_eq!(Bits::count(& 3), 2);
