@@ -5,6 +5,7 @@ impl Bits {
 	// Rust doesn't like the faster method recommended at
 	// https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
 	// because it takes advantage of arithmetic overflow
+	#[inline]
 	pub fn count(number: &u32) -> u32 {
 		let mut v = *number; // count the number of bits set in v
 		let mut c = 0; // c accumulates the total bits set in v
@@ -18,8 +19,9 @@ impl Bits {
 	}
 
 	// Calculate the hamming distance
+	#[inline]
 	pub fn hamming_distance(a: &u32, b: &u32) -> u32 {
-		0
+		Bits::count(& (*a ^ *b))
 	}
 }
 
@@ -36,5 +38,11 @@ fn test_bit_count() {
 
 #[test]
 fn test_hamming_distance() {
-
+	assert_eq!(Bits::hamming_distance(& 1, & 2), 2);
+	assert_eq!(Bits::hamming_distance(& 2, & 3), 1);
+	assert_eq!(Bits::hamming_distance(& 3, & 0), 2);
+	assert_eq!(Bits::hamming_distance(& 0x0000000F, & 0), 4);
+	assert_eq!(Bits::hamming_distance(& 0xF000000F, & 0x0000000F), 4);
+	assert_eq!(Bits::hamming_distance(& 0x1000000F, & 0xF000000F), 3);
+	assert_eq!(Bits::hamming_distance(& 0b0100010110011, & 0xF0000000), 10);
 }
