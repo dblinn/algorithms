@@ -56,13 +56,42 @@ fn run_example(example: &Example) {
 }
 
 fn build_buckets(nodes: &mut Vec<u32>, node_count: u32) -> Buckets {
-	let mut buckets = Buckets::new(nodes, Box::new(|x| { Bits::count(x) }), 0, node_count as usize, 24);
+//	let mut buckets = Buckets::new(nodes, Box::new(|x| { Bits::count(x) }), 0, node_count as usize, 24);
+	let mut buckets = Buckets::new(nodes, Box::new(|x| { 12 + Bits::count(&(x & 0xCCCCCC)) - Bits::count(&(x & 0x333333)) }), 0, node_count as usize, 24);
+//	buckets.print_contents();
+
 	for ref mut item in buckets.ranges.iter_mut() {
 		item.sub_bucket(nodes, Box::new(|x| { 12 + Bits::count(&(x & 0x00000FFF)) - Bits::count(&(x & 0x00FFF000)) }), 24);
-		for ref mut sub_item in item.sub_buckets.as_mut().unwrap().ranges.iter_mut() {
-			sub_item.sub_bucket(nodes, Box::new(|x| { 12 + Bits::count(&(x & 0x00555555)) - Bits::count(&(x & 0x00AAAAAA)) }), 24);
+		match item.sub_buckets.as_mut() {
+			Some(x) => {
+				for ref mut sub_item in x.ranges.iter_mut() {
+					sub_item.sub_bucket(nodes, Box::new(|x| { 12 + Bits::count(&(x & 0x00555555)) - Bits::count(&(x & 0x00AAAAAA)) }), 24);
+					match sub_item.sub_buckets.as_mut() {
+						Some(y) => {
+							for ref mut sub_sub_item in y.ranges.iter_mut() {
+								sub_sub_item.sub_bucket(nodes, Box::new(|x| { 12 + Bits::count(&(x & 0x00F0F0F0)) - Bits::count(&(x & 0x000F0F0F))}), 24);
+								match sub_sub_item.sub_buckets.as_mut() {
+									Some(z) => {
+										for ref mut ultra_item in z.ranges.iter_mut() {
+											ultra_item.sub_bucket(nodes, Box::new(|x| { 12 + Bits::count(&(x & 0x003F03F)) - Bits::count(&(x & 0x0FC0FC0))}), 24);
+										}
+									}
+									None => {}
+								}
+							}
+						}
+						None => {}
+					}
+				}
+			}
+			None => {}
 		}
 	}
+
+//	let mut v = vec![];
+//	buckets.associated_ranges(&mut v, nodes[50000]);
+//	let sum = v.iter().fold(0, |total, &(start, end)| { total + end - start });
+//	println!("{} {} {:?}", sum, v.len(), v);
 
 	buckets
 }

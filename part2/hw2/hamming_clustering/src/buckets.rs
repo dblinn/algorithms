@@ -33,6 +33,7 @@ impl BucketItem {
 	}
 
 	pub fn sub_bucket(&mut self, nodes: &mut Vec<u32>, hash: Box<Fn(&u32) -> u32>, expected_buckets: u32)  {
+		if !self.has_items() { return; }
 		self.sub_buckets = Some(Buckets::new(nodes, hash, self.range_start, self.range_end, expected_buckets));
 	}
 }
@@ -102,6 +103,12 @@ impl Buckets {
 		if range_start < self.range_end {
 			self.ranges[current_hash as usize] =
 				BucketItem { bucket_value: current_hash, range_start: range_start, range_end: self.range_end, sub_buckets: None};
+		}
+	}
+
+	pub fn print_contents(&self) {
+		for range in self.ranges.iter() {
+			println!("{}: {}", range.bucket_value, range.bucket_count());
 		}
 	}
 }
