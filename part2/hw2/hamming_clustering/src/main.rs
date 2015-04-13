@@ -59,27 +59,27 @@ fn build_buckets(nodes: &mut Vec<u32>, node_count: u32) -> Buckets {
 	let mut buckets = Buckets::new(nodes, Box::new(|x| { Bits::count(x) }), 0, node_count as usize, 24);
 	for ref mut item in buckets.ranges.iter_mut() {
 		item.sub_bucket(nodes, Box::new(|x| { 12 + Bits::count(&(x & 0x00000FFF)) - Bits::count(&(x & 0x00FFF000)) }), 24);
-//		for ref mut sub_item in item.sub_buckets.unwrap().ranges.iter_mut() {
-//
-//		}
+		for ref mut sub_item in item.sub_buckets.as_mut().unwrap().ranges.iter_mut() {
+			sub_item.sub_bucket(nodes, Box::new(|x| { 12 + Bits::count(&(x & 0x00555555)) - Bits::count(&(x & 0x00AAAAAA)) }), 24);
+		}
 	}
 
 	buckets
 }
 
 fn bucket_union_nodes(nodes: &Vec<u32>, union: &mut UnionFind<u32>, buckets: &Buckets) -> u32 {
+	let node_count = nodes.len();
 	let mut cluster_count = nodes.len() as u32;
 	let mut ranges : Vec<(usize,usize)> = vec![];
 
 	let mut i: u32 = 0;
 	for node in nodes.iter() {
-		let node_hash = (*buckets.bucket_hash)(node);
 		ranges.clear();
 		buckets.associated_ranges(&mut ranges, *node);
 		cluster_count -= bucket_union(node, nodes, union, &ranges, i);
 
 		i += 1;
-		if cluster_count > 50000 && (i % 1000 == 0) && i > 0 {
+		if node_count > 50000 && (i % 1000 == 0) && i > 0 {
 			println!("At iteration {} of {}", i, nodes.len());
 		}
 	}
@@ -89,8 +89,10 @@ fn bucket_union_nodes(nodes: &Vec<u32>, union: &mut UnionFind<u32>, buckets: &Bu
 
 // Returns the number of unions performed
 fn bucket_union(node: &u32, nodes: &Vec<u32>, union: &mut UnionFind<u32>, ranges: &Vec<(usize,usize)>, node_index: u32) -> u32 {
-//	let sum = ranges.iter().fold(0, |total, &(start, end)| { total + end - start });
-//	println!("Testing against {} of {} values", sum, nodes.len());
+	if node_index % 1000 == 0 {
+		let sum = ranges.iter().fold(0, |total, &(start, end)| { total + end - start });
+		println!("Testing against {} of {} values ({} ranges)", sum, nodes.len(), ranges.len());
+	}
 
 	let mut cluster_count = 0;
 	for range in ranges.iter() {
