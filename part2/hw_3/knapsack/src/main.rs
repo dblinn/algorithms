@@ -36,7 +36,8 @@ fn run_example(example: &Example) {
 	let mut reader = BufReader::new(&mut file);
 
 	let (knapsack_size, mut items) = read_problem(&mut reader, &file_name);
-	let mut memos: Vec<knapsack::Memo> = Vec::with_capacity(items.len());
+	let mut solver = knapsack::Solver::new(items);
+	solver.solve(knapsack_size);
 //	let mut union = UnionFind::<u32>::new(node_count as usize);
 //
 //	sort_edges_by_weight(&mut edges);
