@@ -36,8 +36,8 @@ fn run_example(example: &Example) {
 	let mut reader = BufReader::new(&mut file);
 
 	let (knapsack_size, mut items) = read_problem(&mut reader, &file_name);
-	let mut solver = knapsack::Solver::new(items);
-	solver.solve(knapsack_size);
+	let mut solver = knapsack::Solver::new(items, knapsack_size);
+	let computed_optimal_solution = solver.solve();
 //	let mut union = UnionFind::<u32>::new(node_count as usize);
 //
 //	sort_edges_by_weight(&mut edges);
