@@ -32,7 +32,7 @@ impl Memo {
 	}
 
 	pub fn better_value<'a>(first: &'a Memo, second: &'a Memo) -> &'a Memo {
-		if (first.optimal_value > second.optimal_value) { first }
+		if first.optimal_value > second.optimal_value { first }
 		else { second }
 	}
 }
@@ -47,8 +47,8 @@ pub struct Solver {
 impl Solver {
 	pub fn new(items: Vec<Item>, knapsack_size: u32) -> Solver {
 		let memo_size = items.len() + 1;
-		let mut first_memo = Solver::create_memo(memo_size);
-		let mut second_memo = Solver::create_memo(memo_size);
+		let first_memo = Solver::create_memo(memo_size);
+		let second_memo = Solver::create_memo(memo_size);
 		Solver { items: items, knapsack_size: knapsack_size, first_memo: first_memo, second_memo: second_memo }
 	}
 
@@ -71,7 +71,7 @@ impl Solver {
 	}
 
 	fn solution_memo(&self) -> Memo {
-		if (self.items.len() % 2 == 0) {
+		if self.items.len() % 2 == 0 {
 			self.first_memo[self.first_memo.len() - 1]
 		}
 		else {
@@ -80,7 +80,7 @@ impl Solver {
 	}
 
 	fn update_target(target_memo: &mut Vec<Memo>, last_added: &Memo, to_add: &Memo, knapsack_size: u32) -> Memo {
-		if (to_add.makes_weight(knapsack_size) && to_add.better_than(last_added)) {
+		if to_add.makes_weight(knapsack_size) && to_add.better_than(last_added) {
 			target_memo.push(*to_add);
 			return *to_add;
 		}
@@ -93,7 +93,7 @@ impl Solver {
 
 		let mut last_added = source_memo[0];
 		target_memo.push(Memo { optimal_value: 0, used_weight: 0 });
-		while (i < source_memo.len() && j < source_memo.len()) {
+		while i < source_memo.len() && j < source_memo.len() {
 			let ref source = source_memo[i];
 			let source_prime = source_memo[j].add(cur_item);
 			match source.used_weight.cmp(&source_prime.used_weight) {
@@ -120,40 +120,7 @@ impl Solver {
 		}
 	}
 
-//	fn prior_index(&self, cur_index: usize) {
-//		if (cur_index == 0) {
-//			self.knapsack_size() - 1
-//		}
-//		else {
-//			cur_index - 1
-//		}
-//	}
-
-//	fn optimal_value(&self, last_weight_memo: &Memo, last_item_memo: &Memo, item: &Item) -> Memo {
-//		let composite_memo = last_item_memo.add(item);
-//		if composite_memo.makes_weight(self.knapsack_size) && composite_memo.better_value(last_weight_memo) {
-//			return composite_memo;
-//		}
-//		*last_weight_memo
-//	}
-
 	fn create_memo(memo_size: usize) -> Vec<Memo> {
 		Vec::<Memo>::with_capacity(memo_size)
 	}
-
-	// Greatest common divisor among the weights
-	// All examples have a GCD of 1, so commented out because has no use.
-//	fn greatest_common_divisor(&self) -> u32 {
-//		let mut primes = [2,3,5,7,11,13,17];
-//		primes.reverse();
-//
-//		for prime in primes.iter() {
-//			let all_divisible = self.items.iter().all(|item| { item.weight % prime == 0 });
-//			if (all_divisible) {
-//				return *prime as u32;
-//			}
-//		}
-//
-//		1
-//	}
 }

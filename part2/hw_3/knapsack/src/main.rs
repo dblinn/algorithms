@@ -14,9 +14,9 @@ struct Example<'a> {
 fn main() {
 	let examples = [
 		Example {file_name: "test_cases/example_1.txt", optimal_solution_value: 8},
-//		Example {file_name: "test_cases/example_2.txt", optimal_solution_value: 1398904},
-//		Example {file_name: "test_cases/knapsack1.txt", optimal_solution_value: 0},
-//		Example {file_name: "test_cases/knapsack_big.txt", optimal_solution_value: 0},
+		Example {file_name: "test_cases/example_2.txt", optimal_solution_value: 1398904},
+		Example {file_name: "test_cases/knapsack1.txt", optimal_solution_value: 0},
+		Example {file_name: "test_cases/knapsack_big.txt", optimal_solution_value: 0},
 	];
 
 	for example in examples.iter() {
@@ -35,25 +35,20 @@ fn run_example(example: &Example) {
 		};
 	let mut reader = BufReader::new(&mut file);
 
-	let (knapsack_size, mut items) = read_problem(&mut reader, &file_name);
+	let (knapsack_size, items) = read_problem(&mut reader, &file_name);
 	let mut solver = knapsack::Solver::new(items, knapsack_size);
 	let computed_optimal_solution = solver.solve();
-	verify_example(example, computed_optimal_solution, knapsack_size)
-//	let mut union = UnionFind::<u32>::new(node_count as usize);
-//
-//	sort_edges_by_weight(&mut edges);
-//	let distance = run_clustering(node_count, &mut union, &edges, example);
-//	verify_example(example, distance);
+	verify_example(example, computed_optimal_solution, knapsack_size);
 }
 
 fn verify_example(example: &Example, computed_optimal_value: u32, knapsack_size: u32) {
 	if example.optimal_solution_value > 0 {
-		println!("For knapsack size {} clusters, found a optimal solution of {} and expected {}",
+		println!("For knapsack size {} found an optimal solution of {} and expected {}",
 				 knapsack_size, computed_optimal_value, example.optimal_solution_value);
-//		assert_eq!(example.optimal_solution_value, computed_optimal_value);
+		assert_eq!(example.optimal_solution_value, computed_optimal_value);
 	}
 	else {
-		println!("For 4 clusters, found a distance of {}", computed_optimal_value);
+		println!("For knapsack size {}, found an optimal solution of {}", knapsack_size, computed_optimal_value);
 	}
 }
 
