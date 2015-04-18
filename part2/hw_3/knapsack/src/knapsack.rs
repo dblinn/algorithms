@@ -1,3 +1,6 @@
+use std::cmp::Ordering;
+
+#[derive(Debug)]
 pub struct Item {
 	pub value: u32,
 	pub weight: u32,
@@ -9,7 +12,7 @@ impl Item {
 	}
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Memo {
 	pub optimal_value: u32,
 	pub used_weight: u32,
@@ -26,6 +29,11 @@ impl Memo {
 
 	pub fn better_than(&self, other: &Memo) -> bool {
 		self.optimal_value > other.optimal_value
+	}
+
+	pub fn better_value<'a>(first: &'a Memo, second: &'a Memo) -> &'a Memo {
+		if (first.optimal_value > second.optimal_value) { first }
+		else { second }
 	}
 }
 
@@ -54,7 +62,9 @@ impl Solver {
 				0 => (&self.first_memo, &mut self.second_memo),
 				_ => (&self.second_memo, &mut self.first_memo)
 			};
-			Solver::step_solution(&self.items[i], source_memo, target_memo);
+			target_memo.clear();
+			Solver::step_solution(&self.items[i], source_memo, target_memo, self.knapsack_size);
+//			println!("{} {:?}", i, target_memo);
 		}
 
 		self.solution_memo().optimal_value
@@ -69,18 +79,45 @@ impl Solver {
 		}
 	}
 
-	fn step_solution(cur_item: &Item, source_memo: &Vec<Memo>, target_memo: &mut Vec<Memo>) {
-//		let mut working_weight_memo = Memo { optimal_value: 0, used_weight: 0 };
-//		let mut last_weight_memo = Memo { optimal_value: 0, used_weight: 0 };
-//
-//		for i in 0..self.memo.len() {
-//			let mut ref last_item_memo = self.memo[i];
-//			working_weight_memo = optimal_value(&last_weight_memo, last_item_memo, cur_item);
-//
-//			// Copy over into prior memo
-//			last_weight_memo = working_weight_memo;
-//			last_item_memo = working_weight_memo;
-//		}
+	fn update_target(target_memo: &mut Vec<Memo>, last_added: &Memo, to_add: &Memo, knapsack_size: u32) -> Memo {
+		if (to_add.makes_weight(knapsack_size) && to_add.better_than(last_added)) {
+			target_memo.push(*to_add);
+			return *to_add;
+		}
+		*last_added
+	}
+
+	fn step_solution(cur_item: &Item, source_memo: &Vec<Memo>, target_memo: &mut Vec<Memo>, knapsack_size: u32) {
+		let mut i = 0;
+		let mut j = 0;
+
+		let mut last_added = source_memo[0];
+		target_memo.push(Memo { optimal_value: 0, used_weight: 0 });
+		while (i < source_memo.len() && j < source_memo.len()) {
+			let ref source = source_memo[i];
+			let source_prime = source_memo[j].add(cur_item);
+			match source.used_weight.cmp(&source_prime.used_weight) {
+				Ordering::Less => {
+					last_added = Solver::update_target(target_memo, &last_added, source, knapsack_size);
+					i = i + 1;
+				},
+				Ordering::Greater => {
+					last_added = Solver::update_target(target_memo, &last_added, &source_prime, knapsack_size);
+					j = j + 1;
+				},
+				Ordering::Equal => {
+					last_added = Solver::update_target(target_memo, &last_added,
+						&Memo::better_value(source, &source_prime), knapsack_size);
+					i = i + 1;
+					j = j + 1;
+				},
+			}
+		}
+
+		for k in j .. source_memo.len() {
+			let ref source = source_memo[k];
+			last_added = Solver::update_target(target_memo, &last_added, &source.add(cur_item), knapsack_size);
+		}
 	}
 
 //	fn prior_index(&self, cur_index: usize) {
@@ -92,13 +129,13 @@ impl Solver {
 //		}
 //	}
 
-	fn optimal_value(&self, last_weight_memo: &Memo, last_item_memo: &Memo, item: &Item) -> Memo {
-		let composite_memo = last_item_memo.add(item);
-		if composite_memo.makes_weight(self.knapsack_size) && composite_memo.better_than(last_weight_memo) {
-			return composite_memo;
-		}
-		*last_weight_memo
-	}
+//	fn optimal_value(&self, last_weight_memo: &Memo, last_item_memo: &Memo, item: &Item) -> Memo {
+//		let composite_memo = last_item_memo.add(item);
+//		if composite_memo.makes_weight(self.knapsack_size) && composite_memo.better_value(last_weight_memo) {
+//			return composite_memo;
+//		}
+//		*last_weight_memo
+//	}
 
 	fn create_memo(memo_size: usize) -> Vec<Memo> {
 		Vec::<Memo>::with_capacity(memo_size)

@@ -14,9 +14,9 @@ struct Example<'a> {
 fn main() {
 	let examples = [
 		Example {file_name: "test_cases/example_1.txt", optimal_solution_value: 8},
-		Example {file_name: "test_cases/example_2.txt", optimal_solution_value: 1398904},
-		Example {file_name: "test_cases/knapsack1.txt", optimal_solution_value: 0},
-		Example {file_name: "test_cases/knapsack_big.txt", optimal_solution_value: 0},
+//		Example {file_name: "test_cases/example_2.txt", optimal_solution_value: 1398904},
+//		Example {file_name: "test_cases/knapsack1.txt", optimal_solution_value: 0},
+//		Example {file_name: "test_cases/knapsack_big.txt", optimal_solution_value: 0},
 	];
 
 	for example in examples.iter() {
@@ -38,6 +38,7 @@ fn run_example(example: &Example) {
 	let (knapsack_size, mut items) = read_problem(&mut reader, &file_name);
 	let mut solver = knapsack::Solver::new(items, knapsack_size);
 	let computed_optimal_solution = solver.solve();
+	verify_example(example, computed_optimal_solution, knapsack_size)
 //	let mut union = UnionFind::<u32>::new(node_count as usize);
 //
 //	sort_edges_by_weight(&mut edges);
@@ -45,15 +46,16 @@ fn run_example(example: &Example) {
 //	verify_example(example, distance);
 }
 
-//fn verify_example(example: &Example, computed_optimal_value: u32) {
-//	if example.cluster_count > 0 {
-//		println!("For {} clusters, found a distance of {} and expected {}", example.cluster_count, distance, example.distance);
-//		assert_eq!(example.distance, distance);
-//	}
-//	else {
-//		println!("For 4 clusters, found a distance of {}", distance);
-//	}
-//}
+fn verify_example(example: &Example, computed_optimal_value: u32, knapsack_size: u32) {
+	if example.optimal_solution_value > 0 {
+		println!("For knapsack size {} clusters, found a optimal solution of {} and expected {}",
+				 knapsack_size, computed_optimal_value, example.optimal_solution_value);
+//		assert_eq!(example.optimal_solution_value, computed_optimal_value);
+	}
+	else {
+		println!("For 4 clusters, found a distance of {}", computed_optimal_value);
+	}
+}
 
 fn read_problem(reader: &mut BufReader<&mut File>, file_name: &std::path::Display) -> (u32, Vec<knapsack::Item>) {
 	let (knapsack_size, item_count) = read_problem_size(reader);
@@ -87,7 +89,7 @@ fn read_problem_size(reader: &mut BufReader<&mut File>) -> (u32, u32) {
 fn read_item_from_line(line: &str) -> knapsack::Item {
 	let fields = line.split(" ").collect::<Vec<&str>>();
 	knapsack::Item::new(
-		fields[0].parse::<u32>().unwrap(),
 		fields[1].parse::<u32>().unwrap(),
+		fields[0].parse::<u32>().unwrap(),
 	)
 }
