@@ -1,4 +1,6 @@
 use std::cmp::Ordering;
+// Algorithm due to Li Xiaosong in this post:
+// https://class.coursera.org/algo2-004/forum/thread?thread_id=194
 
 #[derive(Debug)]
 pub struct Item {
@@ -64,7 +66,6 @@ impl Solver {
 			};
 			target_memo.clear();
 			Solver::step_solution(&self.items[i], source_memo, target_memo, self.knapsack_size);
-//			println!("{} {:?}", i, target_memo);
 		}
 
 		self.solution_memo().optimal_value
