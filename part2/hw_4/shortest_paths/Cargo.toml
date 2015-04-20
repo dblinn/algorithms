@@ -1,0 +1,4 @@
+[package]
+name = "shortest_paths"
+version = "0.0.1"
+authors = ["David Blinn <dblinn@cyrusinnovation.com>"]
