@@ -45,11 +45,11 @@ fn run_example(example: &Example) {
 
 fn read_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display) -> (usize, usize, Vec<Node>) {
 	let (node_count, edge_count) = read_problem_size(reader);
-	let initial_edge_count = (edge_count * 2) / node_count;
 
-	let mut nodes: Vec<Node> = Vec::with_capacity(node_count);
+	let mut builders: Vec<NodeBuilder> = Vec::with_capacity(node_count);
+	let mut edges: Vec<DirectedEdge> = Vec::with_capacity(edge_count);
 	for i in 0..node_count {
-		nodes.push(Node::new(i, initial_edge_count));
+		builders.push(NodeBuilder::new(i));
 	}
 
 	for line in reader.lines() {
@@ -57,13 +57,17 @@ fn read_graph(reader: &mut BufReader<&mut File>, file_name: &std::path::Display)
 			Err(why) => panic!("couldn't read {}: {}", file_name, Error::description(&why)),
 			Ok(line_contents) => {
 				let edge = read_edge_from_line(line_contents.trim().as_ref());
-				nodes[edge.a].edges.push(edge);
+				builders[edge.a].outgoing_edge_count += 1;
+				builders[edge.b].incoming_edge_count += 1;
+				edges.push(edge);
 			}
 		}
 	}
 
-	for node in nodes.iter_mut() {
-		node.finalize_edges();
+	let mut nodes: Vec<Node> = builders.into_iter().map(|builder| { builder.to_node() }).collect();
+	for edge in edges.iter() {
+		nodes[edge.a].out_edges.push(*edge);
+		nodes[edge.b].in_edges.push(*edge);
 	}
 
 	println!("In file {}, read a graph of size: {} nodes and {} edges", file_name, nodes.len(), edge_count);

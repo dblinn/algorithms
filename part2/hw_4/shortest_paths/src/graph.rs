@@ -11,18 +11,34 @@ impl DirectedEdge {
 	}
 }
 
+pub struct NodeBuilder {
+	pub index: usize,
+	pub outgoing_edge_count: usize,
+	pub incoming_edge_count: usize,
+}
+
+impl NodeBuilder {
+	pub fn new(index: usize) -> NodeBuilder {
+		NodeBuilder { index: index, outgoing_edge_count: 0, incoming_edge_count: 0 }
+	}
+
+	pub fn to_node(&self) -> Node {
+		Node::new(self)
+	}
+}
+
 #[derive(Debug)]
 pub struct Node {
 	pub index: usize,
-	pub edges: Vec<DirectedEdge>,
+	pub out_edges: Vec<DirectedEdge>,
+	pub in_edges: Vec<DirectedEdge>,
 }
 
 impl Node {
-	pub fn new(index: usize, initial_edge_count: usize) -> Node {
-		Node { index: index, edges: Vec::<DirectedEdge>::with_capacity(initial_edge_count) }
-	}
-
-	pub fn finalize_edges(&mut self) {
-		self.edges.shrink_to_fit();
+	pub fn new(builder: &NodeBuilder) -> Node {
+		Node { index: builder.index,
+			out_edges: Vec::<DirectedEdge>::with_capacity(builder.outgoing_edge_count),
+			in_edges: Vec::<DirectedEdge>::with_capacity(builder.incoming_edge_count)
+		}
 	}
 }
