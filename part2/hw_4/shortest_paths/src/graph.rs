@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 #[derive(Debug, Clone, Copy)]
 pub struct DirectedEdge {
 	pub weight: i32,
@@ -39,6 +41,23 @@ impl Node {
 		Node { index: builder.index,
 			out_edges: Vec::<DirectedEdge>::with_capacity(builder.outgoing_edge_count),
 			in_edges: Vec::<DirectedEdge>::with_capacity(builder.incoming_edge_count)
+		}
+	}
+}
+
+pub enum PathLength {
+	Reach(i32),
+	Unreach
+}
+
+impl Add for PathLength {
+	type Output = PathLength;
+
+	fn add(self, _rhs: PathLength) -> PathLength {
+		match (self, _rhs) {
+			(PathLength::Reach(self_value), PathLength::Reach(rhs_value)) => PathLength::Reach(self_value + rhs_value),
+			(PathLength::Unreach, _) => PathLength::Unreach,
+			(_, PathLength::Unreach) => PathLength::Unreach,
 		}
 	}
 }
