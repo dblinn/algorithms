@@ -2,7 +2,7 @@ use graph::*;
 
 mod graph_builder;
 mod bellman_ford;
-mod djikstra;
+mod dijkstra;
 mod johnson;
 mod graph;
 

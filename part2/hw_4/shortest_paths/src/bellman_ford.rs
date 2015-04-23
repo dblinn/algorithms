@@ -3,18 +3,18 @@ use super::graph::*;
 use super::graph::PathLength::*;
 use super::graph_builder::*;
 
-pub struct Runner {
+pub struct BellmanFord {
 	pub has_negative_cycle: bool,
 	pub first_paths: Vec<PathLength>,
 	pub second_paths: Vec<PathLength>,
 	pub node_count: usize
 }
 
-impl Runner {
-	pub fn new(node_count: usize) -> Runner {
+impl BellmanFord {
+	pub fn new(node_count: usize) -> BellmanFord {
 		let first_paths = Vec::<PathLength>::with_capacity(node_count);
 		let second_paths = first_paths.clone();
-		Runner { has_negative_cycle: false, node_count: node_count, first_paths: first_paths, second_paths: second_paths }
+		BellmanFord { has_negative_cycle: false, node_count: node_count, first_paths: first_paths, second_paths: second_paths }
 	}
 
 	// Returns true if successfully computed paths, returns false if the input graph has a negative cycle
@@ -29,7 +29,7 @@ impl Runner {
 
 			// The input graph has a negative cycle if the final iteration caused a change
 			// to the solution
-			self.has_negative_cycle = Runner::step_solution(nodes, source, target);
+			self.has_negative_cycle = BellmanFord::step_solution(nodes, source, target);
 		}
 
 		!self.has_negative_cycle
@@ -79,50 +79,50 @@ impl Runner {
 #[test]
 fn test_example_one() {
 	let (node_count, edge_count, nodes) = build_graph_from_file("test_cases/example_1.txt");
-	let mut runner = Runner::new(node_count);
-	runner.compute_shortest_paths(Some(0), &nodes);
-	assert!(!runner.has_negative_cycle);
-	assert_eq!(runner.path_solutions()[0], Reach(0));
-	assert_eq!(runner.path_solutions()[1], Reach(-5));
-	assert_eq!(runner.path_solutions()[2], Reach(-4));
-	assert_eq!(runner.path_solutions()[3], Reach(-3));
-	assert_eq!(runner.path_solutions()[4], Reach(-10003));
-	assert_eq!(runner.path_solutions()[5], Reach(-10));
+	let mut bellman_ford = BellmanFord::new(node_count);
+	bellman_ford.compute_shortest_paths(Some(0), &nodes);
+	assert!(!bellman_ford.has_negative_cycle);
+	assert_eq!(bellman_ford.path_solutions()[0], Reach(0));
+	assert_eq!(bellman_ford.path_solutions()[1], Reach(-5));
+	assert_eq!(bellman_ford.path_solutions()[2], Reach(-4));
+	assert_eq!(bellman_ford.path_solutions()[3], Reach(-3));
+	assert_eq!(bellman_ford.path_solutions()[4], Reach(-10003));
+	assert_eq!(bellman_ford.path_solutions()[5], Reach(-10));
 }
 
 #[test]
 fn test_exmaple_two() {
 	let (node_count, edge_count, nodes) = build_graph_from_file("test_cases/example_2.txt");
-	let mut runner = Runner::new(node_count);
-	runner.compute_shortest_paths(Some(0), &nodes);
-	assert!(!runner.has_negative_cycle);
-	assert_eq!(runner.path_solutions()[0], Reach(0));
-	assert_eq!(runner.path_solutions()[1], Reach(-2));
-	assert_eq!(runner.path_solutions()[2], Reach(-3));
-	assert_eq!(runner.path_solutions()[3], Reach(-1));
-	assert_eq!(runner.path_solutions()[4], Reach(-6));
-	assert_eq!(runner.path_solutions()[5], Unreach);
+	let mut bellman_ford = BellmanFord::new(node_count);
+	bellman_ford.compute_shortest_paths(Some(0), &nodes);
+	assert!(!bellman_ford.has_negative_cycle);
+	assert_eq!(bellman_ford.path_solutions()[0], Reach(0));
+	assert_eq!(bellman_ford.path_solutions()[1], Reach(-2));
+	assert_eq!(bellman_ford.path_solutions()[2], Reach(-3));
+	assert_eq!(bellman_ford.path_solutions()[3], Reach(-1));
+	assert_eq!(bellman_ford.path_solutions()[4], Reach(-6));
+	assert_eq!(bellman_ford.path_solutions()[5], Unreach);
 }
 
 #[test]
 fn test_start_at_zero() {
 	let (node_count, edge_count, nodes) = build_graph_from_file("test_cases/example_2.txt");
-	let mut runner = Runner::new(node_count);
-	runner.compute_shortest_paths(None, &nodes);
-	assert!(!runner.has_negative_cycle);
-	assert_eq!(runner.path_solutions()[0], Reach(0));
-	assert_eq!(runner.path_solutions()[1], Reach(-2));
-	assert_eq!(runner.path_solutions()[2], Reach(-3));
-	assert_eq!(runner.path_solutions()[3], Reach(-1));
-	assert_eq!(runner.path_solutions()[4], Reach(-6));
-	assert_eq!(runner.path_solutions()[5], Reach(0));
+	let mut bellman_ford = BellmanFord::new(node_count);
+	bellman_ford.compute_shortest_paths(None, &nodes);
+	assert!(!bellman_ford.has_negative_cycle);
+	assert_eq!(bellman_ford.path_solutions()[0], Reach(0));
+	assert_eq!(bellman_ford.path_solutions()[1], Reach(-2));
+	assert_eq!(bellman_ford.path_solutions()[2], Reach(-3));
+	assert_eq!(bellman_ford.path_solutions()[3], Reach(-1));
+	assert_eq!(bellman_ford.path_solutions()[4], Reach(-6));
+	assert_eq!(bellman_ford.path_solutions()[5], Reach(0));
 }
 
 #[test]
 fn test_negative_cycle() {
 	let (node_count, edge_count, nodes) = build_graph_from_file("test_cases/negative_cycle.txt");
-	let mut runner = Runner::new(node_count);
-	runner.compute_shortest_paths(Some(0), &nodes);
-	println!("{:?}", runner.path_solutions());
-	assert!(runner.has_negative_cycle);
+	let mut bellman_ford = BellmanFord::new(node_count);
+	bellman_ford.compute_shortest_paths(Some(0), &nodes);
+	println!("{:?}", bellman_ford.path_solutions());
+	assert!(bellman_ford.has_negative_cycle);
 }
