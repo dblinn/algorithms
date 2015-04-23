@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use super::graph::*;
 use super::graph::PathLength::*;
+use super::graph_builder::*;
 
 pub struct Runner {
 	pub has_negative_cycle: bool,
@@ -65,12 +66,54 @@ impl Runner {
 				.map(|edge| { source[edge.a].cat(edge) })
 				.min().unwrap_or(Unreach);
 			let previous_iteration_shortest_path = source[node.index];
-			target[node.index] = match previous_iteration_shortest_path.cmp(&next_iteration_shortest_path) {
-				Ordering::Less => { any_changed = true; previous_iteration_shortest_path },
-				_ => next_iteration_shortest_path,
+			target[node.index] = match next_iteration_shortest_path.cmp(&previous_iteration_shortest_path) {
+				Ordering::Less => { any_changed = true; next_iteration_shortest_path },
+				_ => previous_iteration_shortest_path,
 			};
 		}
 
 		any_changed
 	}
+}
+
+#[test]
+fn test_example_one() {
+	let (node_count, edge_count, nodes) = build_graph_from_file("test_cases/example_1.txt");
+	let mut runner = Runner::new(node_count);
+	runner.compute_shortest_paths(Some(0), &nodes);
+	assert!(!runner.has_negative_cycle);
+	assert_eq!(runner.path_solutions()[0], Reach(0));
+	assert_eq!(runner.path_solutions()[1], Reach(-5));
+	assert_eq!(runner.path_solutions()[2], Reach(-4));
+	assert_eq!(runner.path_solutions()[3], Reach(-3));
+	assert_eq!(runner.path_solutions()[4], Reach(-10003));
+	assert_eq!(runner.path_solutions()[5], Reach(-10));
+}
+
+#[test]
+fn test_exmaple_two() {
+	let (node_count, edge_count, nodes) = build_graph_from_file("test_cases/example_2.txt");
+	let mut runner = Runner::new(node_count);
+	runner.compute_shortest_paths(Some(0), &nodes);
+	assert!(!runner.has_negative_cycle);
+	assert_eq!(runner.path_solutions()[0], Reach(0));
+	assert_eq!(runner.path_solutions()[1], Reach(-2));
+	assert_eq!(runner.path_solutions()[2], Reach(-3));
+	assert_eq!(runner.path_solutions()[3], Reach(-1));
+	assert_eq!(runner.path_solutions()[4], Reach(-6));
+	assert_eq!(runner.path_solutions()[5], Unreach);
+}
+
+#[test]
+fn test_start_at_zero() {
+	let (node_count, edge_count, nodes) = build_graph_from_file("test_cases/example_2.txt");
+	let mut runner = Runner::new(node_count);
+	runner.compute_shortest_paths(None, &nodes);
+	assert!(!runner.has_negative_cycle);
+	assert_eq!(runner.path_solutions()[0], Reach(0));
+	assert_eq!(runner.path_solutions()[1], Reach(-2));
+	assert_eq!(runner.path_solutions()[2], Reach(-3));
+	assert_eq!(runner.path_solutions()[3], Reach(-1));
+	assert_eq!(runner.path_solutions()[4], Reach(-6));
+	assert_eq!(runner.path_solutions()[5], Reach(0));
 }
