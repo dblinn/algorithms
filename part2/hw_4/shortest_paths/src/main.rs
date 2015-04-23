@@ -19,9 +19,10 @@ fn main() {
 	let examples = [
 		Example {file_name: "test_cases/example_1.txt", shortest_shortest_path: -10003},
 		Example {file_name: "test_cases/example_2.txt", shortest_shortest_path: -6},
-		Example {file_name: "test_cases/g1.txt", shortest_shortest_path: i32::max_value()},
-		Example {file_name: "test_cases/g2.txt", shortest_shortest_path: i32::max_value()},
-		Example {file_name: "test_cases/g3.txt", shortest_shortest_path: i32::max_value()},
+//		Example {file_name: "test_cases/g1.txt", shortest_shortest_path: i32::max_value()},
+//		Example {file_name: "test_cases/g2.txt", shortest_shortest_path: i32::max_value()},
+//		Example {file_name: "test_cases/g3.txt", shortest_shortest_path: i32::max_value()},
+//		Example {file_name: "test_cases/large.txt", shortest_shortest_path: i32::max_value()},
 	];
 
 	for example in examples.iter() {
