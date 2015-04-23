@@ -117,3 +117,12 @@ fn test_start_at_zero() {
 	assert_eq!(runner.path_solutions()[4], Reach(-6));
 	assert_eq!(runner.path_solutions()[5], Reach(0));
 }
+
+#[test]
+fn test_negative_cycle() {
+	let (node_count, edge_count, nodes) = build_graph_from_file("test_cases/negative_cycle.txt");
+	let mut runner = Runner::new(node_count);
+	runner.compute_shortest_paths(Some(0), &nodes);
+	println!("{:?}", runner.path_solutions());
+	assert!(runner.has_negative_cycle);
+}
