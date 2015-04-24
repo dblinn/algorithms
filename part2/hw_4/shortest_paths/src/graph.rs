@@ -148,9 +148,9 @@ fn test_edge_comparison() {
 	let e1 = DijkstraEdge { path_length: 1, a: 0, b: 1 };
 	let e2 = DijkstraEdge { path_length: 2, a: 0, b: 1 };
 
-//	assert_eq!(e0.cmp(&e0), Ordering::Equal);
-//	assert_eq!(e0.cmp(&e1), Ordering::Greater);
-//	assert_eq!(e2.cmp(&e1), Ordering::Less);
+	assert_eq!(e0.cmp(&e0), Ordering::Equal);
+	assert_eq!(e0.cmp(&e1), Ordering::Greater);
+	assert_eq!(e2.cmp(&e1), Ordering::Less);
 
 	let mut heap = BinaryHeap::new();
 	heap.push(e0);
