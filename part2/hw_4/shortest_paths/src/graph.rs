@@ -114,6 +114,15 @@ impl Add for PathLength {
 	}
 }
 
+impl PathLength {
+	pub fn length(&self) -> i32 {
+		match *self {
+			Reach(self_value) => self_value,
+			Unreach => panic!("Cannot take length of unreachable path")
+		}
+	}
+}
+
 #[test]
 fn test_path_add_path() {
 	assert_eq!(Reach(3) + Reach(2), Reach(5));
@@ -160,4 +169,15 @@ fn test_edge_comparison() {
 	assert_eq!(heap.pop().unwrap(), e0);
 	assert_eq!(heap.pop().unwrap(), e1);
 	assert_eq!(heap.pop().unwrap(), e2);
+}
+
+#[test]
+fn test_path_length_length() {
+	assert_eq!(Reach(5).length(), 5);
+}
+
+#[test]
+#[should_panic]
+fn test_path_length_unreach() {
+	Unreach.length();
 }
