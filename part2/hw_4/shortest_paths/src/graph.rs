@@ -2,7 +2,7 @@ use std::ops::Add;
 use graph::PathLength::{Reach, Unreach};
 use std::cmp::Ordering;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 pub struct DirectedEdge {
 	pub weight: i32,
 	pub a: usize,
@@ -12,6 +12,19 @@ pub struct DirectedEdge {
 impl DirectedEdge {
 	pub fn new(a: usize, b: usize, weight: i32) -> DirectedEdge {
 		DirectedEdge { weight: weight, a: a, b: b }
+	}
+}
+
+// Note that this is implemented in reverse weight order so that comparing a <=> b,
+// a is less than b when a's weight is greater than b's so that DirectedEdges can
+// be used in a max-heap and be withdrawn in order from lowest to highest
+impl Ord for DirectedEdge {
+	fn cmp(&self, other: &Self) -> Ordering {
+		match self.weight.cmp(&other.weight) {
+			Ordering::Less => Ordering::Greater,
+			Ordering::Greater => Ordering::Less,
+			_ => Ordering::Equal,
+		}
 	}
 }
 
@@ -111,4 +124,15 @@ fn test_path_comparison() {
 	assert_eq!(Reach(3).cmp(&Unreach), Ordering::Less);
 	assert_eq!(Unreach.cmp(&Reach(3)), Ordering::Greater);
 	assert_eq!(Unreach.cmp(&Unreach), Ordering::Equal);
+}
+
+#[test]
+fn test_edge_comparison() {
+	let e0 = DirectedEdge { weight: 0, a: 0, b: 1 };
+	let e1 = DirectedEdge { weight: 1, a: 0, b: 1 };
+	let e2 = DirectedEdge { weight: 2, a: 0, b: 1 };
+
+	assert_eq!(e0.cmp(&e0), Ordering::Equal);
+	assert_eq!(e0.cmp(&e1), Ordering::Greater);
+	assert_eq!(e2.cmp(&e1), Ordering::Less);
 }
