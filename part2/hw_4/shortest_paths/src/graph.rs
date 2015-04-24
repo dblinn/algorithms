@@ -1,8 +1,9 @@
 use std::ops::Add;
 use graph::PathLength::{Reach, Unreach};
 use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Clone, Copy)]
 pub struct DirectedEdge {
 	pub weight: i32,
 	pub a: usize,
@@ -15,16 +16,31 @@ impl DirectedEdge {
 	}
 }
 
-// Note that this is implemented in reverse weight order so that comparing a <=> b,
-// a is less than b when a's weight is greater than b's so that DirectedEdges can
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DijkstraEdge {
+	pub path_length: i32,
+	pub a: usize,
+	pub b: usize,
+}
+
+impl DijkstraEdge {
+	pub fn new(length_to_edge_source: i32, edge: &DirectedEdge) -> DijkstraEdge {
+		DijkstraEdge { path_length: length_to_edge_source + edge.weight, a: edge.a, b: edge.b }
+	}
+}
+
+// Note that this is implemented in reverse path length order so that comparing a <=> b,
+// a is less than b when a's path length is greater than b's so that DirectedEdges can
 // be used in a max-heap and be withdrawn in order from lowest to highest
-impl Ord for DirectedEdge {
+impl Ord for DijkstraEdge {
 	fn cmp(&self, other: &Self) -> Ordering {
-		match self.weight.cmp(&other.weight) {
-			Ordering::Less => Ordering::Greater,
-			Ordering::Greater => Ordering::Less,
-			_ => Ordering::Equal,
-		}
+		other.path_length.cmp(&self.path_length)
+	}
+}
+
+impl PartialOrd for DijkstraEdge {
+	fn partial_cmp(&self, other: &DijkstraEdge) -> Option<Ordering> {
+		Some(self.cmp(other))
 	}
 }
 
@@ -128,11 +144,20 @@ fn test_path_comparison() {
 
 #[test]
 fn test_edge_comparison() {
-	let e0 = DirectedEdge { weight: 0, a: 0, b: 1 };
-	let e1 = DirectedEdge { weight: 1, a: 0, b: 1 };
-	let e2 = DirectedEdge { weight: 2, a: 0, b: 1 };
+	let e0 = DijkstraEdge { path_length: 0, a: 0, b: 1 };
+	let e1 = DijkstraEdge { path_length: 1, a: 0, b: 1 };
+	let e2 = DijkstraEdge { path_length: 2, a: 0, b: 1 };
 
-	assert_eq!(e0.cmp(&e0), Ordering::Equal);
-	assert_eq!(e0.cmp(&e1), Ordering::Greater);
-	assert_eq!(e2.cmp(&e1), Ordering::Less);
+//	assert_eq!(e0.cmp(&e0), Ordering::Equal);
+//	assert_eq!(e0.cmp(&e1), Ordering::Greater);
+//	assert_eq!(e2.cmp(&e1), Ordering::Less);
+
+	let mut heap = BinaryHeap::new();
+	heap.push(e0);
+	heap.push(e1);
+	heap.push(e2);
+
+	assert_eq!(heap.pop().unwrap(), e0);
+	assert_eq!(heap.pop().unwrap(), e1);
+	assert_eq!(heap.pop().unwrap(), e2);
 }

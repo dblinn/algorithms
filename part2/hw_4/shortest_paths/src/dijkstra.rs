@@ -9,7 +9,7 @@ pub struct Dijkstra<'a> {
 	pub in_cut: Vec<bool>,
 	pub nodes: &'a Vec<Node>,
 
-	edge_heap: BinaryHeap<DirectedEdge>,
+	edge_heap: BinaryHeap<DijkstraEdge>,
 	nodes_added: usize,
 }
 
@@ -20,27 +20,36 @@ impl <'a>Dijkstra<'a> {
 		Dijkstra { shortest_paths: paths,
 			in_cut: in_cut,
 			nodes: nodes,
-			edge_heap: BinaryHeap::<DirectedEdge>::with_capacity(max(edge_count - nodes.len(), 1)),
+			edge_heap: BinaryHeap::<DijkstraEdge>::with_capacity(max(edge_count - nodes.len(), 1)),
 			nodes_added: 0,
 		}
 	}
 
 	pub fn compute_shortest_paths(&mut self, source_index: usize) {
 		self.initialize_paths(source_index);
+
+		while self.nodes_added < self.nodes.len() && !self.edge_heap.is_empty() {
+			let edge = self.edge_heap.pop().unwrap();
+			if !self.in_cut[edge.b] {
+				self.add_node_to_cut(&self.nodes[edge.b], edge.path_length);
+			}
+		}
 	}
 
 	fn node_count(&self) -> usize {
 		self.nodes.len()
 	}
 
-	fn add_node_to_cut(&mut self, node: &Node) {
+	fn add_node_to_cut(&mut self, node: &Node, path_length: i32) {
 		self.in_cut[node.index] = true;
+		self.shortest_paths[node.index] = Reach(path_length);
 		self.nodes_added += 1;
 
 		// Add outgoing edges to edges not already in the cut to the heap
 		for edge in node.out_edges.iter() {
 			if !self.in_cut[edge.b] {
-				self.edge_heap.push(*edge);
+				println!("Adding edge {} -> {} with path_length {}", edge.a, edge.b, path_length + edge.weight);
+				self.edge_heap.push(DijkstraEdge::new(path_length, edge));
 			}
 		}
 	}
@@ -61,7 +70,7 @@ impl <'a>Dijkstra<'a> {
 			}
 		}
 
-		self.add_node_to_cut(&self.nodes[source_index]);
+		self.add_node_to_cut(&self.nodes[source_index], 0);
 	}
 }
 
