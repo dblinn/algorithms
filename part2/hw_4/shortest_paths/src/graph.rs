@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Sub};
 use graph::PathLength::{Reach, Unreach};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
@@ -108,6 +108,18 @@ impl Add for PathLength {
 	fn add(self, _rhs: PathLength) -> PathLength {
 		match (self, _rhs) {
 			(PathLength::Reach(self_value), PathLength::Reach(rhs_value)) => PathLength::Reach(self_value + rhs_value),
+			(PathLength::Unreach, _) => PathLength::Unreach,
+			(_, PathLength::Unreach) => PathLength::Unreach,
+		}
+	}
+}
+
+impl Sub for PathLength {
+	type Output = PathLength;
+
+	fn sub(self, _rhs: PathLength) -> PathLength {
+		match (self, _rhs) {
+			(PathLength::Reach(self_value), PathLength::Reach(rhs_value)) => PathLength::Reach(self_value - rhs_value),
 			(PathLength::Unreach, _) => PathLength::Unreach,
 			(_, PathLength::Unreach) => PathLength::Unreach,
 		}

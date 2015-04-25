@@ -35,11 +35,7 @@ impl <'a>Dijkstra<'a> {
 			}
 		}
 	}
-
-	pub fn longest_path(&self) -> PathLength {
-		*self.shortest_paths.iter().max().unwrap()
-	}
-
+	
 	fn node_count(&self) -> usize {
 		self.nodes.len()
 	}
