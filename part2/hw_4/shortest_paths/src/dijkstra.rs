@@ -20,7 +20,7 @@ impl <'a>Dijkstra<'a> {
 		Dijkstra { shortest_paths: paths,
 			in_cut: in_cut,
 			nodes: nodes,
-			edge_heap: BinaryHeap::<DijkstraEdge>::with_capacity(max(edge_count - nodes.len(), 1)),
+			edge_heap: BinaryHeap::<DijkstraEdge>::with_capacity(max(edge_count as i32 - nodes.len() as i32, 1) as usize),
 			nodes_added: 0,
 		}
 	}
@@ -35,7 +35,7 @@ impl <'a>Dijkstra<'a> {
 			}
 		}
 	}
-	
+
 	fn node_count(&self) -> usize {
 		self.nodes.len()
 	}
@@ -48,7 +48,6 @@ impl <'a>Dijkstra<'a> {
 		// Add outgoing edges to edges not already in the cut to the heap
 		for edge in node.out_edges.iter() {
 			if !self.in_cut[edge.b] {
-				println!("Adding edge {} -> {} with path_length {}", edge.a, edge.b, path_length + edge.weight);
 				self.edge_heap.push(DijkstraEdge::new(path_length, edge));
 			}
 		}

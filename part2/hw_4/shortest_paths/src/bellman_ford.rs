@@ -51,7 +51,7 @@ impl BellmanFord {
 		// Initialize all nodes unreachable except for the source
 		for i in 0 .. self.node_count {
 			self.first_paths.push(
-				if (i == index) { Reach(0) }
+				if i == index { Reach(0) }
 				else { initial_value }
 			);
 			self.second_paths.push(Unreach);
