@@ -40,10 +40,19 @@ impl Johnson {
 
 		let bellman_solutions = self.bellman.path_solutions();
 		let relabelled_nodes = self.nodes_with_relabelled_edges(bellman_solutions);
-//		let dijkstra =
-//		self.shortest_shortest_path = compute_shortest_shortest_paths(&relabelled_nodes, &dijkstra);
+		let mut dijkstra = Dijkstra::new(&relabelled_nodes, self.edge_count);
+		self.shortest_shortest_path = self.compute_shortest_shortest_paths(&relabelled_nodes, &mut dijkstra);
 
 		(true, self.shortest_shortest_path)
+	}
+
+	pub fn compute_shortest_shortest_paths(&self, relabelled_nodes: &Vec<Node>, dijkstra: &mut Dijkstra) -> i32 {
+		let shortest = Unreach;
+		for i in 0 .. relabelled_nodes.len() {
+			dijkstra.compute_shortest_paths(i);
+		}
+
+		0
 	}
 
 	pub fn nodes_with_relabelled_edges(&self, bellman_solutions: &Vec<PathLength>) -> Vec<Node> {
