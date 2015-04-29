@@ -10,7 +10,7 @@ use std::cmp;
 // http://rustbyexample.com/generics/phantom.html
 pub struct Gosper {
 	max_set_value: u32,
-	choice_size: usize,
+	subset_size: usize,
 	curr: u32,
 	next: u32
 }
@@ -32,15 +32,15 @@ impl Iterator for Gosper {
 }
 
 impl Gosper {
-	pub fn new(choice_size: usize, set_size: usize) -> Gosper {
+	pub fn new(subset_size: usize, set_size: usize) -> Gosper {
 		let max_set_size = Gosper::max_set_size();
 		if set_size > max_set_size { panic!("Cannot create set of size {}. Does not currently support sets of size greater than {}.", set_size, max_set_size); }
-		if choice_size > set_size { panic!("Cannot choose {} elements from a set of size {}.", choice_size, set_size); }
+		if subset_size > set_size { panic!("Cannot choose {} element subsets from an overall set of size {}.", subset_size, set_size); }
 
-		let initial_value = Gosper::initial_value(choice_size);
+		let initial_value = Gosper::initial_value(subset_size);
 		// Need to sub 1 from max_set_size in case set_size is 0, cannot left shift 32 bits for 32 bit value, get overflow error
-		let max_value = initial_value << cmp::min(set_size - choice_size, max_set_size - 1);
-		Gosper { max_set_value: max_value, choice_size: choice_size, curr: 0, next: initial_value }
+		let max_value = initial_value << cmp::min(set_size - subset_size, max_set_size - 1);
+		Gosper { max_set_value: max_value, subset_size: subset_size, curr: 0, next: initial_value }
 	}
 
 	pub fn max_set_size() -> usize {
@@ -58,7 +58,7 @@ impl Gosper {
 		c
 	}
 
-	pub fn choice_size(&self) -> usize { self.choice_size }
+	pub fn subset_size(&self) -> usize { self.subset_size }
 
 	// http://read.seas.harvard.edu/cs207/2012/?p=64
 	// Cannot use -x, have to use !x + 1 instead because unary '-' generates an error for unsigned int
