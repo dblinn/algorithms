@@ -1,5 +1,6 @@
 mod gosper_subset;
 mod graph;
+mod salesman_builder;
 
 struct Example<'a> {
 	file_name: &'a str,

@@ -26,7 +26,7 @@ fn read_salesman_problem(reader: &mut BufReader<&mut File>, file_name: &Display)
 	let mut points: Vec<SalesmanPoint> = Vec::with_capacity(point_count);
 	let problem_size = point_count - 1;
 	let mut start_edges: Vec<SalesmanEdge> = Vec::with_capacity(problem_size);
-	let mut graph_edges: Vec<Vec<DirectedEdge>> = Vec::with_capacity(problem_size);
+	let mut graph_edges: Vec<Vec<SalesmanEdge>> = Vec::with_capacity(problem_size);
 	for i in 0..problem_size {
 		graph_edges.push(Vec::with_capacity(problem_size));
 	}
@@ -35,7 +35,7 @@ fn read_salesman_problem(reader: &mut BufReader<&mut File>, file_name: &Display)
 		match line {
 			Err(why) => panic!("couldn't read {}: {}", file_name, Error::description(&why)),
 			Ok(line_contents) => {
-				points.push(read_edge_from_line(line_contents.trim().as_ref()));
+				points.push(read_point_from_line(line_contents.trim().as_ref()));
 			}
 		}
 	}
@@ -50,8 +50,8 @@ fn read_salesman_problem(reader: &mut BufReader<&mut File>, file_name: &Display)
 fn build_start_edges(start_edges: &mut Vec<SalesmanEdge>, points: &Vec<SalesmanPoint>) {
 	let first_point = points[0];
 	for i in 1 .. points.len() {
-		let weight = first_point.distance(points[i]);
-		let edge = SalesmanEdge { weight: weight, neighbor: !0 }
+		let weight = first_point.distance(&points[i]);
+		let edge = SalesmanEdge { weight: weight, neighbor: !0 };
 		start_edges.push(edge);
 	}
 }
@@ -62,24 +62,22 @@ fn build_graph_edges(graph_edges: &mut Vec<Vec<SalesmanEdge>>, points: &Vec<Sale
 
 		for j in i+1 .. points.len() - 1 {
 			let p1 = points[j + 1];
-			let weight = p0.distance(p1);
+			let weight = p0.distance(&p1);
 			graph_edges[i].push(SalesmanEdge { weight: weight, neighbor: j });
 			graph_edges[j].push(SalesmanEdge { weight: weight, neighbor: i });
 		}
 	}
 
 	// Assert correctness
-	for vec in graph_edges { assert_eq!(points.len() - 1, vec.len()); }
+	for vec in graph_edges { println!("{:?}", vec); assert_eq!(points.len() - 2, vec.len()); }
 }
 
-fn read_problem_size(reader: &mut BufReader<&mut File>) -> (usize, usize) {
+fn read_problem_size(reader: &mut BufReader<&mut File>) -> usize {
 	let mut line = String::new();
 	reader.read_line(&mut line).ok().expect("Could not read line");
 	let fields = line.trim().split(" ").collect::<Vec<&str>>();
 
-	(
-		fields[0].parse::<usize>().unwrap(),
-	)
+	fields[0].parse::<usize>().unwrap()
 }
 
 fn read_point_from_line(line: &str) -> SalesmanPoint {
@@ -88,4 +86,15 @@ fn read_point_from_line(line: &str) -> SalesmanPoint {
 		x: fields[0].parse::<f32>().unwrap(),
 		y: fields[1].parse::<f32>().unwrap(),
 	}
+}
+
+#[test]
+fn test_build_from_file() {
+	let (problem_size, initial_edges, salesman_edges) = build_salesman_from_file("test_cases/rectangle.txt");
+	assert_eq!(9, problem_size);
+	assert_eq!(1.0f32, initial_edges[0].weight);
+	assert_eq!(1.0f32, salesman_edges[0][0].weight);
+
+	assert_eq!(vec![1,2,3,4,5,6,7,8], salesman_edges[0].iter().map(|e| {e.neighbor}).collect::<Vec<usize>>());
+	assert_eq!(vec![0,1,3,4,5,6,7,8], salesman_edges[2].iter().map(|e| {e.neighbor}).collect::<Vec<usize>>());
 }

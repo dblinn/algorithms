@@ -11,7 +11,7 @@ impl SalesmanEdge {
 }
 
 #[derive(Clone, Copy)]
-pub struct SalesmanPoint { x: f32, y: f32 }
+pub struct SalesmanPoint { pub x: f32, pub y: f32 }
 
 impl SalesmanPoint {
 	pub fn distance(&self, other: &SalesmanPoint) -> f32 {
