@@ -6,7 +6,7 @@ use std::path::{Path, Display};
 
 use graph::*;
 
-pub fn build_graph_from_file(file_name: &str) -> (usize, usize, Vec<Node>) {
+pub fn build_salesman_from_file(file_name: &str) -> (usize, Vec<SalesmanEdge>, Vec<Vec<SalesmanEdge>>) {
 	let path = Path::new(file_name);
 	let display_name = path.display();
 
@@ -20,35 +20,56 @@ pub fn build_graph_from_file(file_name: &str) -> (usize, usize, Vec<Node>) {
 	read_salesman_problem(&mut reader, &display_name)
 }
 
-fn read_salesman_problem(reader: &mut BufReader<&mut File>, file_name: &Display) -> (usize, Vec<Vec<SalesmanEdge>>) {
-	let (node_count, edge_count) = read_problem_size(reader);
+fn read_salesman_problem(reader: &mut BufReader<&mut File>, file_name: &Display) -> (usize, Vec<SalesmanEdge>, Vec<Vec<SalesmanEdge>>) {
+	let point_count = read_problem_size(reader);
 
-	let mut builders: Vec<NodeBuilder> = Vec::with_capacity(node_count);
-	let mut edges: Vec<DirectedEdge> = Vec::with_capacity(edge_count);
-	for i in 0..node_count {
-		builders.push(NodeBuilder::new(i));
+	let mut points: Vec<SalesmanPoint> = Vec::with_capacity(point_count);
+	let problem_size = point_count - 1;
+	let mut start_edges: Vec<SalesmanEdge> = Vec::with_capacity(problem_size);
+	let mut graph_edges: Vec<Vec<DirectedEdge>> = Vec::with_capacity(problem_size);
+	for i in 0..problem_size {
+		graph_edges.push(Vec::with_capacity(problem_size));
 	}
 
 	for line in reader.lines() {
 		match line {
 			Err(why) => panic!("couldn't read {}: {}", file_name, Error::description(&why)),
 			Ok(line_contents) => {
-				let edge = read_edge_from_line(line_contents.trim().as_ref());
-				builders[edge.a].outgoing_edge_count += 1;
-				builders[edge.b].incoming_edge_count += 1;
-				edges.push(edge);
+				points.push(read_edge_from_line(line_contents.trim().as_ref()));
 			}
 		}
 	}
 
-	let mut nodes: Vec<Node> = builders.into_iter().map(|builder| { builder.to_node() }).collect();
-	for edge in edges.iter() {
-		nodes[edge.a].out_edges.push(*edge);
-		nodes[edge.b].in_edges.push(*edge);
+	build_start_edges(&mut start_edges, &points);
+	build_graph_edges(&mut graph_edges, &points);
+
+	println!("In file {}, read a problem of size: {}", file_name, problem_size);
+	(problem_size, start_edges, graph_edges)
+}
+
+fn build_start_edges(start_edges: &mut Vec<SalesmanEdge>, points: &Vec<SalesmanPoint>) {
+	let first_point = points[0];
+	for i in 1 .. points.len() {
+		let weight = first_point.distance(points[i]);
+		let edge = SalesmanEdge { weight: weight, neighbor: !0 }
+		start_edges.push(edge);
+	}
+}
+
+fn build_graph_edges(graph_edges: &mut Vec<Vec<SalesmanEdge>>, points: &Vec<SalesmanPoint>) {
+	for i in 0 .. points.len() - 1 {
+		let p0 = points[i + 1];
+
+		for j in i+1 .. points.len() - 1 {
+			let p1 = points[j + 1];
+			let weight = p0.distance(p1);
+			graph_edges[i].push(SalesmanEdge { weight: weight, neighbor: j });
+			graph_edges[j].push(SalesmanEdge { weight: weight, neighbor: i });
+		}
 	}
 
-	println!("In file {}, read a graph of size: {} nodes and {} edges", file_name, nodes.len(), edge_count);
-	(node_count, edge_count, nodes)
+	// Assert correctness
+	for vec in graph_edges { assert_eq!(points.len() - 1, vec.len()); }
 }
 
 fn read_problem_size(reader: &mut BufReader<&mut File>) -> (usize, usize) {
@@ -58,15 +79,13 @@ fn read_problem_size(reader: &mut BufReader<&mut File>) -> (usize, usize) {
 
 	(
 		fields[0].parse::<usize>().unwrap(),
-		fields[1].parse::<usize>().unwrap(),
 	)
 }
 
-fn read_edge_from_line(line: &str) -> DirectedEdge {
+fn read_point_from_line(line: &str) -> SalesmanPoint {
 	let fields = line.split(" ").collect::<Vec<&str>>();
-	DirectedEdge::new(
-		fields[0].parse::<usize>().unwrap() - 1,
-		fields[1].parse::<usize>().unwrap() - 1,
-		fields[2].parse::<i32>().unwrap(),
-	)
+	SalesmanPoint {
+		x: fields[0].parse::<f32>().unwrap(),
+		y: fields[1].parse::<f32>().unwrap(),
+	}
 }
