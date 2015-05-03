@@ -101,3 +101,45 @@ fn test_correctness() {
 	assert_eq!(vec![0b1, 0b10, 0b100, 0b1000, 0b10000, 0b100000, 0b1000000, 0b10000000],
 		Gosper::new(1, 8).collect::<Vec<u32>>());
 }
+
+#[derive(Clone, Copy)]
+pub struct BitSubset {
+	curr_subset: u32,
+	shifts: usize,
+}
+
+impl Iterator for BitSubset {
+	type Item = usize;
+
+	fn next(&mut self) -> Option<usize> {
+		if (self.curr_subset == 0) { return None; }
+
+		while (self.curr_subset & 1) == 0 {
+			self.curr_subset >>= 1;
+			self.shifts += 1;
+		}
+
+		self.curr_subset >>= 1;
+		self.shifts += 1;
+		Some(self.shifts - 1)
+	}
+}
+
+impl BitSubset {
+	pub fn new(subset: u32) -> BitSubset {
+		BitSubset { curr_subset: subset, shifts: 0 }
+	}
+}
+
+#[test]
+fn test_bit_subset_correctness() {
+	let bs = BitSubset::new(0b0100101);
+	let v = bs.collect::<Vec<usize>>();
+	assert_eq!(vec![0,2,5], v);
+
+	let empty_vec : Vec<usize> = vec![];
+	assert_eq!(empty_vec, BitSubset::new(0).collect::<Vec<usize>>());
+
+	let full_vec : Vec<usize> = vec![0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+	assert_eq!(full_vec, BitSubset::new(0xFFFF).collect::<Vec<usize>>());
+}
