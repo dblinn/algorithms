@@ -1,6 +1,10 @@
+#![feature(core)]
+
 mod gosper_subset;
 mod graph;
 mod salesman_builder;
+mod solver;
+
 
 struct Example<'a> {
 	file_name: &'a str,
@@ -20,7 +24,11 @@ fn main() {
 }
 
 fn run_example(example: &Example) {
-//	let (_, edge_count, nodes) = graph_builder::build_graph_from_file(example.file_name);
+	let (problem_size, initial_edges, salesman_edges) = salesman_builder::build_salesman_from_file(example.file_name);
+	let mut solver = solver::Solver::new(problem_size, initial_edges, salesman_edges);
+	let found_disatance = solver.solve();
+
+	verify_example(example, found_disatance);
 }
 
 fn verify_example(example: &Example, found_distance: f32) {

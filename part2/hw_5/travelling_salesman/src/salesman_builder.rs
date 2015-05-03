@@ -69,7 +69,7 @@ fn build_graph_edges(graph_edges: &mut Vec<Vec<SalesmanEdge>>, points: &Vec<Sale
 	}
 
 	// Assert correctness
-	for vec in graph_edges { println!("{:?}", vec); assert_eq!(points.len() - 2, vec.len()); }
+	for vec in graph_edges { assert_eq!(points.len() - 2, vec.len()); }
 }
 
 fn read_problem_size(reader: &mut BufReader<&mut File>) -> usize {
