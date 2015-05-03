@@ -36,6 +36,10 @@ impl Solver {
 		for m in 1 .. (self.problem_size + 1) {
 			println!("{} of {}", m, self.problem_size);
 			let gosper = Gosper::new(m, self.problem_size);
+
+			let choices = gosper.total_choices();
+			let mut iterations = 0;
+
 			for s in gosper {
 				for v in 0 .. self.problem_size {
 					let s_prime = Solver::masked_subset(s, v as u32);
@@ -55,6 +59,11 @@ impl Solver {
 //					println!("A[{:b}, {} ({})] -> {}", s, v, ((s as usize) * self.problem_size + v), min_cost);
 				}
 //				panic!();
+
+				iterations += 1;
+				if choices > (1 << 24) && (iterations % (1 << 24) == 0) {
+					println!("iteration {} of {} for {}", iterations, choices, m);
+				}
 			}
 
 //			panic!();

@@ -12,7 +12,7 @@ pub struct Gosper {
 	max_set_value: u32,
 	subset_size: usize,
 	curr: u32,
-	next: u32
+	next: u32,
 }
 
 impl Iterator for Gosper {
@@ -45,6 +45,20 @@ impl Gosper {
 
 	pub fn max_set_size() -> usize {
 		size_of::<u32>() * 8
+	}
+
+	pub fn total_choices(&self) -> usize {
+		Gosper::binomial_coefficient(self.set_size(), self.subset_size)
+	}
+
+	// Calculate the binomial coefficient recursively
+	fn binomial_coefficient(set_size: usize, choices: usize) -> usize {
+		if choices >= set_size { return 1; }
+		else if choices == 1 { return set_size; }
+		if choices <= 0 { return 1; }
+
+		return Gosper::binomial_coefficient(set_size - 1, choices - 1) +
+			Gosper::binomial_coefficient(set_size - 1, choices);
 	}
 
 	// Counting bits set, Brian Kernighan's way
@@ -100,6 +114,15 @@ fn test_correctness() {
 
 	assert_eq!(vec![0b1, 0b10, 0b100, 0b1000, 0b10000, 0b100000, 0b1000000, 0b10000000],
 		Gosper::new(1, 8).collect::<Vec<u32>>());
+}
+
+fn test_subset_size() {
+	assert_eq!(8, Gosper::new(1, 8).total_choices());
+	assert_eq!(28, Gosper::new(2, 8).total_choices());
+	assert_eq!(56, Gosper::new(3, 8).total_choices());
+	assert_eq!(8, Gosper::new(7, 8).total_choices());
+	assert_eq!(1, Gosper::new(8, 8).total_choices());
+	assert_eq!(1, Gosper::new(0, 8).total_choices());
 }
 
 #[derive(Clone, Copy)]

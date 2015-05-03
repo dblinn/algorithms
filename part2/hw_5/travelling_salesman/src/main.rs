@@ -15,7 +15,7 @@ fn main() {
 	let examples = [
 		Example {file_name: "test_cases/rectangle.txt", route_distance: 10f32},
 		Example {file_name: "test_cases/medium.txt", route_distance: 3.50116f32},
-//		Example {file_name: "test_cases/tsp.txt", route_distance: std::f32::MAX},
+		Example {file_name: "test_cases/tsp.txt", route_distance: std::f32::MAX},
 	];
 
 	for example in examples.iter() {
