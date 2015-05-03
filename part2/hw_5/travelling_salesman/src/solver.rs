@@ -34,7 +34,7 @@ impl Solver {
 		self.initialize_memo();
 
 		for m in 0 .. self.problem_size {
-			let mut gosper = Gosper::new(self.problem_size, m);
+			let mut gosper = Gosper::new(m, self.problem_size);
 			for s in gosper {
 				for v in 0 .. self.problem_size {
 					let s_prime = Solver::masked_subset(s, v as u32);

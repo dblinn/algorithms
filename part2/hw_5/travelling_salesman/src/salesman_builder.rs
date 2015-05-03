@@ -57,19 +57,21 @@ fn build_start_edges(start_edges: &mut Vec<SalesmanEdge>, points: &Vec<SalesmanP
 }
 
 fn build_graph_edges(graph_edges: &mut Vec<Vec<SalesmanEdge>>, points: &Vec<SalesmanPoint>) {
-	for i in 0 .. points.len() - 1 {
-		let p0 = points[i + 1];
+	for i in 1 .. points.len() {
+		let p0 = points[i];
 
-		for j in i+1 .. points.len() - 1 {
-			let p1 = points[j + 1];
+		for j in i .. points.len() {
+			let p1 = points[j];
 			let weight = p0.distance(&p1);
-			graph_edges[i].push(SalesmanEdge { weight: weight, neighbor: j });
-			graph_edges[j].push(SalesmanEdge { weight: weight, neighbor: i });
+			graph_edges[i - 1].push(SalesmanEdge { weight: weight, neighbor: j - 1 });
+			if (i != j) {
+				graph_edges[j - 1].push(SalesmanEdge { weight: weight, neighbor: i - 1});
+			}
 		}
 	}
 
 	// Assert correctness
-	for vec in graph_edges { assert_eq!(points.len() - 2, vec.len()); }
+	for vec in graph_edges { assert_eq!(points.len() - 1, vec.len()); }
 }
 
 fn read_problem_size(reader: &mut BufReader<&mut File>) -> usize {
@@ -93,8 +95,9 @@ fn test_build_from_file() {
 	let (problem_size, initial_edges, salesman_edges) = build_salesman_from_file("test_cases/rectangle.txt");
 	assert_eq!(9, problem_size);
 	assert_eq!(1.0f32, initial_edges[0].weight);
-	assert_eq!(1.0f32, salesman_edges[0][0].weight);
+	assert_eq!(0f32, salesman_edges[0][0].weight);
+	assert_eq!(1.0f32, salesman_edges[0][1].weight);
 
-	assert_eq!(vec![1,2,3,4,5,6,7,8], salesman_edges[0].iter().map(|e| {e.neighbor}).collect::<Vec<usize>>());
-	assert_eq!(vec![0,1,3,4,5,6,7,8], salesman_edges[2].iter().map(|e| {e.neighbor}).collect::<Vec<usize>>());
+	assert_eq!(vec![0,1,2,3,4,5,6,7,8], salesman_edges[0].iter().map(|e| {e.neighbor}).collect::<Vec<usize>>());
+	assert_eq!(vec![0,1,2,3,4,5,6,7,8], salesman_edges[2].iter().map(|e| {e.neighbor}).collect::<Vec<usize>>());
 }
