@@ -93,7 +93,7 @@ fn test_invalid_args() {
 }
 
 fn test_correctness() {
-	let mut gosper = Gosper::new(1, 8);
+	let gosper = Gosper::new(1, 8);
 	let mut combined = 0;
 	for set in gosper { combined |= set; }
 	assert_eq!(0xFF, combined);
@@ -112,7 +112,7 @@ impl Iterator for BitSubset {
 	type Item = usize;
 
 	fn next(&mut self) -> Option<usize> {
-		if (self.curr_subset == 0) { return None; }
+		if self.curr_subset == 0 { return None; }
 
 		while (self.curr_subset & 1) == 0 {
 			self.curr_subset >>= 1;

@@ -35,7 +35,10 @@ fn verify_example(example: &Example, found_distance: f32) {
 	if example.route_distance != std::f32::MAX {
 		println!("For example {}, expected route of length {}, found route of length {:?}",
 				 example.file_name, example.route_distance, found_distance);
-		assert_eq!(example.route_distance, found_distance);
+		let difference = (example.route_distance - found_distance).abs();
+		if (difference > 0.0001f32) {
+			assert_eq!(example.route_distance, found_distance);
+		}
 	}
 	else {
 		println!("For example {} found path of length {}",

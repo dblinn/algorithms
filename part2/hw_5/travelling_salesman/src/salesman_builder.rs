@@ -27,7 +27,7 @@ fn read_salesman_problem(reader: &mut BufReader<&mut File>, file_name: &Display)
 	let problem_size = point_count - 1;
 	let mut start_edges: Vec<SalesmanEdge> = Vec::with_capacity(problem_size);
 	let mut graph_edges: Vec<Vec<SalesmanEdge>> = Vec::with_capacity(problem_size);
-	for i in 0..problem_size {
+	for _ in 0..problem_size {
 		graph_edges.push(Vec::with_capacity(problem_size));
 	}
 
@@ -64,7 +64,7 @@ fn build_graph_edges(graph_edges: &mut Vec<Vec<SalesmanEdge>>, points: &Vec<Sale
 			let p1 = points[j];
 			let weight = p0.distance(&p1);
 			graph_edges[i - 1].push(SalesmanEdge { weight: weight, neighbor: j - 1 });
-			if (i != j) {
+			if i != j {
 				graph_edges[j - 1].push(SalesmanEdge { weight: weight, neighbor: i - 1});
 			}
 		}

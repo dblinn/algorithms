@@ -33,23 +33,31 @@ impl Solver {
 	pub fn solve(&mut self) -> f32 {
 		self.initialize_memo();
 
-		for m in 0 .. self.problem_size {
-			let mut gosper = Gosper::new(m, self.problem_size);
+		for m in 1 .. (self.problem_size + 1) {
+			println!("{} of {}", m, self.problem_size);
+			let gosper = Gosper::new(m, self.problem_size);
 			for s in gosper {
 				for v in 0 .. self.problem_size {
 					let s_prime = Solver::masked_subset(s, v as u32);
-					let mut subset = BitSubset::new(s_prime);
+					let subset = BitSubset::new(s_prime);
 					let ref edges = self.salesman_edges[v];
 					let offset = (s_prime as usize) * self.problem_size;
+//					println!("s_prime: {}, offset: {}", s_prime, offset);
 
 					// Calculate min over all edges from s_prime to v
-					let mut min_cost = f32::MAX;
+					let mut min_cost = if s_prime == 0 { self.initial_edges[v].weight } else { f32::MAX };
 					for prior_node in subset {
 						min_cost = cmp::partial_min(self.memo[offset + prior_node] + edges[prior_node].weight, min_cost).unwrap();
+//						println!("A[{:b}, {}] + {} -> {} = {}", s_prime, prior_node, self.memo[offset + prior_node], edges[prior_node].weight,
+//							self.memo[offset + prior_node] + edges[prior_node].weight);
 					}
 					self.memo[(s as usize) * self.problem_size + v] = min_cost;
+//					println!("A[{:b}, {} ({})] -> {}", s, v, ((s as usize) * self.problem_size + v), min_cost);
 				}
+//				panic!();
 			}
+
+//			panic!();
 		}
 
 		self.calculate_last_leg()
@@ -62,6 +70,7 @@ impl Solver {
 		let ref edges = self.initial_edges;
 
 		for v in 0 .. self.problem_size {
+			println!("A[{:b}, {} ({})] -> {} + {}", offset, v, (offset + v), self.memo[offset + v], edges[v].weight);
 			min_cost = cmp::partial_min(self.memo[offset + v] + edges[v].weight, min_cost).unwrap();
 		}
 
@@ -76,12 +85,10 @@ impl Solver {
 
 	fn initialize_memo(&mut self) {
 		for i in 0 .. self.problem_size {
-			self.memo[i] = self.initial_edges[i].weight;
+			let offset = (1 << i) * self.problem_size;
+			for j in 0 .. self.problem_size {
+				self.memo[offset + j] = self .initial_edges[j].weight;
+			}
 		}
-	}
-
-	#[inline]
-	fn memo_index(&self, s: usize, v: usize) -> usize {
-		s + v
 	}
 }
