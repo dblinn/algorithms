@@ -5,7 +5,6 @@ mod graph;
 mod salesman_builder;
 mod solver;
 
-
 struct Example<'a> {
 	file_name: &'a str,
 	route_distance: f32,

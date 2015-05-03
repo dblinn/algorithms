@@ -46,27 +46,20 @@ impl Solver {
 					let subset = BitSubset::new(s_prime);
 					let ref edges = self.salesman_edges[v];
 					let offset = (s_prime as usize) * self.problem_size;
-//					println!("s_prime: {}, offset: {}", s_prime, offset);
 
 					// Calculate min over all edges from s_prime to v
 					let mut min_cost = if s_prime == 0 { self.initial_edges[v].weight } else { f32::MAX };
 					for prior_node in subset {
 						min_cost = cmp::partial_min(self.memo[offset + prior_node] + edges[prior_node].weight, min_cost).unwrap();
-//						println!("A[{:b}, {}] + {} -> {} = {}", s_prime, prior_node, self.memo[offset + prior_node], edges[prior_node].weight,
-//							self.memo[offset + prior_node] + edges[prior_node].weight);
 					}
 					self.memo[(s as usize) * self.problem_size + v] = min_cost;
-//					println!("A[{:b}, {} ({})] -> {}", s, v, ((s as usize) * self.problem_size + v), min_cost);
 				}
-//				panic!();
 
 				iterations += 1;
 				if choices > (1 << 24) && (iterations % (1 << 24) == 0) {
 					println!("iteration {} of {} for {}", iterations, choices, m);
 				}
 			}
-
-//			panic!();
 		}
 
 		self.calculate_last_leg()
