@@ -1,0 +1,4 @@
+[package]
+name = "two_sat"
+version = "0.1.0"
+authors = ["David Blinn <dblinn@cyrusinnovation.com>"]
