@@ -8,6 +8,10 @@ pub struct Tarjan<'a> {
 
 // See http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
 impl <'a>Tarjan<'a> {
+	pub fn new(nodes: &mut Vec<Node>) -> Tarjan {
+		Tarjan { nodes: nodes, scc_visit: -1 }
+	}
+
 	pub fn compute_scc(&mut self) {
 		self.scc_visit = 0;
 		let mut stack = Vec::with_capacity(self.nodes.len() / 2);
@@ -47,11 +51,11 @@ impl <'a>Tarjan<'a> {
 		}
 
 		let (node_scc_visit, node_scc_lowlink, _) = self.nodes[node_index].scc_data();
-		if (node_scc_visit == node_scc_lowlink) {
+		if node_scc_visit == node_scc_lowlink {
 			let mut popped_node_index = stack.pop().unwrap();
 			self.nodes[popped_node_index].scc_on_stack = false;
 
-			while (popped_node_index != node_index) {
+			while popped_node_index != node_index {
 				popped_node_index = stack.pop().unwrap();
 				self.nodes[popped_node_index].scc_on_stack = false;
 			}
