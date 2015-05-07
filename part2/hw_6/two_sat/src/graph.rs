@@ -1,5 +1,3 @@
-use std::cmp::Ordering;
-
 #[derive(Debug, Clone, Copy)]
 pub struct DirectedEdge {
 	pub a: usize,

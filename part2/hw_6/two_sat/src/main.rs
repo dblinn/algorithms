@@ -9,6 +9,8 @@ struct Example<'a> {
 
 fn main() {
 	let examples = [
+		Example {file_name: "test_cases/example_2.txt", solveable: Some(true)},
+		Example {file_name: "test_cases/example_3.txt", solveable: Some(false)},
 		Example {file_name: "test_cases/2sat1.txt", solveable: None},
 		Example {file_name: "test_cases/2sat2.txt", solveable: None},
 		Example {file_name: "test_cases/2sat3.txt", solveable: None},
