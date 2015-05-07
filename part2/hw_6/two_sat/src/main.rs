@@ -1,5 +1,6 @@
 mod graph;
 mod implication_graph_builder;
+mod tarjan_scc;
 
 struct Example<'a> {
 	file_name: &'a str,
