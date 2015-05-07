@@ -1,6 +1,7 @@
 mod graph;
 mod implication_graph_builder;
 mod tarjan_scc;
+mod two_sat;
 
 struct Example<'a> {
 	file_name: &'a str,
@@ -19,12 +20,23 @@ fn main() {
 		Example {file_name: "test_cases/2sat6.txt", solveable: None},
 	];
 
+	let mut results = String::new();
 	for example in examples.iter() {
-		run_example(example);
+		let satisfiable = run_example(example);
+		if example.solveable == None {
+			results.push_str(if satisfiable { "1"} else { "0"});
+		}
 	}
+
+	println!("{}", results);
 }
 
-fn run_example(example: &Example) {
+fn run_example(example: &Example) -> bool {
+	let (_, _, mut nodes) = implication_graph_builder::build_implication_graph_from_file(example.file_name);
+
+	let satisfiable = two_sat::TwoSat::satisfiable(&mut nodes);
+	verify_example(example, satisfiable);
+	satisfiable
 }
 
 fn verify_example(example: &Example, solveable: bool) {
