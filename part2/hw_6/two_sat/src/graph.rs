@@ -30,7 +30,7 @@ impl NodeBuilder {
 #[derive(Debug)]
 pub struct Node {
 	pub index: usize,
-	pub out_edges: Vec<DirectedEdge>,
+	pub edges: Vec<DirectedEdge>,
 }
 
 impl Node {

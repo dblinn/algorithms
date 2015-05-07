@@ -1,3 +1,6 @@
+mod graph;
+mod implication_graph_builder;
+
 struct Example<'a> {
 	file_name: &'a str,
 	solveable: Option<bool>,
